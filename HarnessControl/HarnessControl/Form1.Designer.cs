@@ -39,6 +39,7 @@
             this.txtMsg.Multiline = true;
             this.txtMsg.Name = "txtMsg";
             this.txtMsg.ReadOnly = true;
+            this.txtMsg.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.txtMsg.Size = new System.Drawing.Size(799, 462);
             this.txtMsg.TabIndex = 0;
             // 
@@ -52,6 +53,7 @@
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

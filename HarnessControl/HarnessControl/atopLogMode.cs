@@ -12,5 +12,7 @@ namespace HarnessControl
         SocketInfo,
 
         SystemError,
+
+        ProcessInfo,
     }
 }

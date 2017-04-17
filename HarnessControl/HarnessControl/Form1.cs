@@ -53,6 +53,7 @@ namespace HarnessControl
             {
                 Controller.ParsingConfig(obj);
                 Controller.Setup();
+                ControlServer.Client.Send("Harness is ready");
             }
             catch (Exception ex)
             {
@@ -60,9 +61,11 @@ namespace HarnessControl
             }
         }
 
+
+
         private void GetHarnessNetInfo()
         {
-            using (StreamReader sr = new StreamReader(Application.StartupPath + "/SettingInfo.txt"))
+            using (StreamReader sr = new StreamReader(Application.StartupPath + " /SettingInfo.txt"))
             {
                 string line = "";
                 while ((line = sr.ReadLine()) != null)
@@ -99,5 +102,9 @@ namespace HarnessControl
             }
         }
 
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            ControlServer.Listener?.Stop();
+        }
     }
 }

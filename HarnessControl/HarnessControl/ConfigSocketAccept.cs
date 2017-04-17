@@ -37,6 +37,11 @@ namespace HarnessControl
                     byte[] bytesFrom = new byte[clientSocket.ReceiveBufferSize];
                     networkStream.Read(bytesFrom, 0, clientSocket.ReceiveBufferSize);
                     string dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom).Replace("\0", "");
+                    if (dataFromClient.Trim() == "")
+                    {
+                        Send("\0", false);
+                    }
+
 
                     ReceiveSocket(dataFromClient);
 
@@ -44,15 +49,15 @@ namespace HarnessControl
             }
             catch (Exception ex)
             {
-                atopLog.WriteLog(atopLogMode.SocketInfo, "Control accept : " + ex.Message);
+                atopLog.WriteLog(atopLogMode.SocketInfo, clientSocket.Client.LocalEndPoint + " Control accept : " + ex.Message);
             }
             Close();
         }
 
 
-        private void Send(string Data)
+        public void Send(string Data, bool NewLine = true)
         {
-            if(!Data.EndsWith("\r\n"))
+            if (NewLine && !Data.EndsWith("\r\n"))
             {
                 Data += "\r\n";
             }
@@ -74,12 +79,12 @@ namespace HarnessControl
                         ReceiveEvent?.BeginInvoke(ConfigData, new AsyncCallback((target) =>
                         {
                             ConfigData = "";
-                            Send("Harness is ready");
                         }), null);
                     }
                     ConfigData += line + Environment.NewLine;
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 atopLog.WriteLog(atopLogMode.SocketInfo, clientSocket.Client.LocalEndPoint + ": Config format fail : " + ex.Message);
                 Send("Error");

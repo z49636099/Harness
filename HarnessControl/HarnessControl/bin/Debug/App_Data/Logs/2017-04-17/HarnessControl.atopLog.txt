@@ -44,3 +44,47 @@
 
 2017-04-17 10:28:23.2619 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
 
+2017-04-17 14:33:18.7368 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
+
+2017-04-17 14:33:20.1898 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:8000 
+
+2017-04-17 14:48:40.0384 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
+
+2017-04-17 14:57:48.9268 | INFO | HarnessControl.atopLog | Socket Server is ready : 10.0.176.200:8000 
+
+2017-04-17 14:59:07.5713 | INFO | HarnessControl.atopLog | Socket Server is ready : 10.0.176.200:8000 
+
+2017-04-17 16:14:19.1904 | INFO | HarnessControl.atopLog | Socket Server is ready : 10.0.176.200:8000 
+
+2017-04-17 16:14:36.5024 | INFO | HarnessControl.atopLog | Socket Server is connect :10.0.176.200:8000 
+
+2017-04-17 16:14:38.7945 | INFO | HarnessControl.atopLog | Control accept : 無法從傳輸連接讀取資料: 連線已被您主機上的軟體中止。。 
+
+2017-04-17 16:14:38.8045 | INFO | HarnessControl.atopLog | Server accept is disconnect:10.0.176.200:8000 
+
+2017-04-17 16:14:42.3827 | INFO | HarnessControl.atopLog | Socket Server is connect :10.0.176.200:8000 
+
+2017-04-17 16:14:43.0098 | INFO | HarnessControl.atopLog | Control accept : 無法從傳輸連接讀取資料: 連線已被您主機上的軟體中止。。 
+
+2017-04-17 16:14:43.0098 | INFO | HarnessControl.atopLog | Server accept is disconnect:10.0.176.200:8000 
+
+2017-04-17 16:14:52.3593 | INFO | HarnessControl.atopLog | Socket Server is connect :10.0.176.200:8000 
+
+2017-04-17 16:14:57.7336 | INFO | HarnessControl.atopLog | Control accept : 無法從傳輸連接讀取資料: 連線已被您主機上的軟體中止。。 
+
+2017-04-17 16:14:57.7446 | INFO | HarnessControl.atopLog | Server accept is disconnect:10.0.176.200:8000 
+
+2017-04-17 16:15:50.3466 | INFO | HarnessControl.atopLog | Socket Server is ready : 10.0.176.200:8000 
+
+2017-04-17 16:15:52.5267 | INFO | HarnessControl.atopLog | Socket Server is connect :10.0.176.200:8000 
+
+2017-04-17 16:15:58.4371 | INFO | HarnessControl.atopLog | Control accept : 無法從傳輸連接讀取資料: 連線已被您主機上的軟體中止。。 
+
+2017-04-17 16:15:58.4371 | INFO | HarnessControl.atopLog | Server accept is disconnect:10.0.176.200:8000 
+
+2017-04-17 16:16:00.1432 | INFO | HarnessControl.atopLog | Socket Server is connect :10.0.176.200:8000 
+
+2017-04-17 16:16:01.9363 | INFO | HarnessControl.atopLog | Control accept : 無法從傳輸連接讀取資料: 遠端主機已強制關閉一個現存的連線。。 
+
+2017-04-17 16:16:01.9363 | INFO | HarnessControl.atopLog | Server accept is disconnect:10.0.176.200:8000 
+

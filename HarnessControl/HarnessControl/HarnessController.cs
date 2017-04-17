@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace HarnessControl
 {
@@ -106,6 +108,10 @@ namespace HarnessControl
         {
             foreach (var Session in SessionList)
             {
+                HarnessProcess P = new HarnessProcess();
+                P.ProcessStart(@"C:\Program Files\Triangle MicroWorks\Protocol Test Harness\bin\tmwtest.exe",
+                               $"-tcl \"source {Application.StartupPath.Replace("\\", "/") + "/"}SocketServer.tcl\";\"CreateSocketServer {Session.HarnessSocketInfo.Port}\"");
+                Thread.Sleep(3000);
                 Session.SocketClientConnect();
                 Session.Setup();
                 if (Session.END == EnumEnd.Backend)

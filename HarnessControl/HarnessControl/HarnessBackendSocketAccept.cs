@@ -23,7 +23,6 @@ namespace HarnessControl
         private void doChat()
         {
             byte[] bytesFrom = new byte[10025];
-            Byte[] sendBytes = null;
 
             NetworkStream networkStream = clientSocket.GetStream();
             try
@@ -33,18 +32,32 @@ namespace HarnessControl
                     networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
                     string dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom).Replace("\0", "");
 
-
+                    if (dataFromClient.Trim() == "")
+                    {
+                        Send("\0", false);
+                    }
                     string serverResponse = Echo(dataFromClient);
 
-                    sendBytes = Encoding.ASCII.GetBytes(serverResponse);
-                    networkStream.Write(sendBytes, 0, sendBytes.Length);
-                    networkStream.Flush();
+                    Send(serverResponse);
                 }
             }
             catch (Exception ex)
             {
+                atopLog.WriteLog(atopLogMode.SocketInfo, clientSocket.Client.LocalEndPoint + " Control accept : " + ex.Message);
             }
             Close();
+        }
+
+        private void Send(string Data, bool NewLine = true)
+        {
+            if (NewLine && !Data.EndsWith("\r\n"))
+            {
+                Data += "\r\n";
+            }
+            NetworkStream networkStream = clientSocket.GetStream();
+            byte[] sendBytes = Encoding.ASCII.GetBytes(Data);
+            networkStream.Write(sendBytes, 0, sendBytes.Length);
+            networkStream.Flush();
         }
 
         public string Echo(string line)
@@ -183,7 +196,6 @@ namespace HarnessControl
             return "0";
         }
 
-
         private string GetData(EnumProtocolType Type, string Cmd, string point, string Quantity)
         {
             int StartPoint = int.Parse(point);
@@ -249,6 +261,7 @@ namespace HarnessControl
         {
             try
             {
+                atopLog.WriteLog(atopLogMode.SocketInfo, "Server accept is disconnect:" + clientSocket.Client.LocalEndPoint);
                 clientSocket.Close();
             }
             catch { }

@@ -19,7 +19,7 @@ namespace HarnessControl
 
         public static void WriteLog(atopLogMode LogMode, string Message)
         {
-            ShowMsg(Message);
+            ShowMsg(LogMode.ToString() + ":" + Message);
             switch (LogMode)
             {
                 //case atopLogMode.TestFail:
@@ -42,6 +42,7 @@ namespace HarnessControl
                 //    Display(ConsoleColor.Black, ConsoleColor.Blue, Message);
                 //    logger.Info(Message);
                 //    break;
+                case atopLogMode.ProcessInfo:
                 case atopLogMode.SocketInfo:
                     logger.Info(Message);
                     break;
