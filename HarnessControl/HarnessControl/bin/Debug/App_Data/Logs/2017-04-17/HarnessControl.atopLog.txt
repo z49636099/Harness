@@ -1,0 +1,46 @@
+2017-04-17 09:28:49.1119 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
+
+2017-04-17 09:29:41.7270 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:8000 
+
+2017-04-17 09:30:04.1286 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:505 
+
+2017-04-17 09:30:25.4382 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:505 
+
+2017-04-17 09:38:39.7363 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
+
+2017-04-17 09:38:51.6859 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:8000 
+
+2017-04-17 09:39:16.9112 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:505 
+
+2017-04-17 09:40:29.6385 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:505 
+
+2017-04-17 09:41:24.8570 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
+
+2017-04-17 09:42:21.0202 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:8000 
+
+2017-04-17 09:42:39.7523 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:505 
+
+2017-04-17 09:42:47.3077 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:505 
+
+2017-04-17 09:44:06.2365 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:505 
+
+2017-04-17 09:45:13.5966 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
+
+2017-04-17 09:49:39.1218 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
+
+2017-04-17 09:49:47.0283 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:8000 
+
+2017-04-17 09:49:56.4518 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:8000 
+
+2017-04-17 09:49:56.5208 | INFO | HarnessControl.atopLog | Control accept is Close 
+
+2017-04-17 10:06:33.1747 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
+
+2017-04-17 10:06:34.4277 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:8000 
+
+2017-04-17 10:07:47.4378 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
+
+2017-04-17 10:07:49.2149 | INFO | HarnessControl.atopLog | Socket Server is connect :127.0.0.1:8000 
+
+2017-04-17 10:28:23.2619 | INFO | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
+

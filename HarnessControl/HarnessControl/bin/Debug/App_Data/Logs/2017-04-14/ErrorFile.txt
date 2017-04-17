@@ -1,0 +1,10 @@
+2017-04-14 09:23:48.6247 | ERROR | HarnessControl.atopLog | Test 
+
+2017-04-14 09:24:09.2518 | ERROR | HarnessControl.atopLog | Test 
+
+2017-04-14 15:24:11.1797 | ERROR | HarnessControl.atopLog | ErrorTest 
+|HarnessControl.atopLog.WriteLog
+2017-04-14 16:06:53.0415 | ERROR | HarnessControl.atopLog | ErrorTest 
+
+2017-04-14 17:50:00.1108 | ERROR | HarnessControl.atopLog | Socket Server is ready :127.0.0.1:8000 
+
