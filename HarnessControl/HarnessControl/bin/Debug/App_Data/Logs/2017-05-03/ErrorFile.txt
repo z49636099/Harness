@@ -1,0 +1,7 @@
+2017-05-03 10:35:37.2215 | ERROR | HarnessControl.atopLog | Connect Fail! 
+
+2017-05-03 10:40:23.0102 | ERROR | HarnessControl.atopLog | Connect Fail! 
+
+2017-05-03 10:57:08.2092 | ERROR | HarnessControl.atopLog | Add point fail : [Harness Exception]  Point 40 already exists 
+ 
+

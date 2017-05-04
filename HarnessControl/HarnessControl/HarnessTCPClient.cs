@@ -91,7 +91,7 @@ namespace HarnessControl
                     string _Data = Encoding.ASCII.GetString(bytes).Replace("\0", "");
 
                     ReceiveData += _Data;
-                    ShowData += _Data;
+                    //ShowData += _Data;
 
                     _ReceivedData(ShowData);
                     if (ReceiveData.Contains("\r\n"))
@@ -107,7 +107,7 @@ namespace HarnessControl
             WaitResult = false;
         }
 
-        public string Send(string Str, int timeout = 1000)
+        public string Send(string Str, int timeout = 5000)
         {
             ReceiveData = "";
             ClearKeyword();
@@ -119,13 +119,17 @@ namespace HarnessControl
                 Thread.Sleep(10);
                 timeout -= 10;
             }
-            if (timeout < 0)
+            if (timeout == 0 )
             {
                 throw new HarnessSocketException("[Receive Timeout] Command : " + Str);
             }
-            if (ReceiveData.StartsWith("Error :"))
+            if (ReceiveData == "-1" || ReceiveData.StartsWith("Error :"))
             {
                 throw new HarnessSocketException("[Harness Exception] " + ReceiveData.Replace("Error :", ""));
+            }
+            if(ReceiveData.EndsWith("\r\n"))
+            {
+                ReceiveData = ReceiveData.Remove(ReceiveData.Length - 2);
             }
             return ReceiveData;
         }
@@ -133,7 +137,7 @@ namespace HarnessControl
 
         private void _WriteData(string _Data)
         {
-            byte[] cmd = Encoding.ASCII.GetBytes(_Data + (char)13);
+            byte[] cmd = Encoding.ASCII.GetBytes(_Data+ "\r\n");
             TelnetClinet.GetStream().Write(cmd, 0, cmd.Length);
         }
 
@@ -145,7 +149,7 @@ namespace HarnessControl
     }
     public class HarnessSocketException : Exception
     {
-        public HarnessSocketException(string Msg):base (Msg)
+        public HarnessSocketException(string Msg) : base(Msg)
         {
 
         }

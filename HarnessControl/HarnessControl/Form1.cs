@@ -47,21 +47,50 @@ namespace HarnessControl
 
         }
 
-        private void ControlServer_ReceiveEvent(string obj)
+        private void ControlServer_ReceiveEvent(string Status, string obj)
         {
             try
             {
-                Controller.ParsingConfig(obj);
-                Controller.Setup();
-                ControlServer.Client.Send("Harness is ready");
+                switch (Status)
+                {
+                    case "Config":
+                        Controller.ParsingConfig(obj);
+                        ControlServer.Client.Send("Config is received");
+                        break;
+                    case "Setup":
+                        Controller.Setup(obj);
+                        ControlServer.Client.Send("Harness is ready");
+                        break;
+                    case "Test":
+                        StartTest(obj);
+                        break;
+                }
             }
             catch (Exception ex)
             {
                 atopLog.WriteLog(atopLogMode.SystemError, ex.Message);
+                ControlServer.Client.Send("Error : " + ex.Message);
             }
         }
 
-
+        private void StartTest(string obj)
+        {
+            switch (obj.ToUpper())
+            {
+                case "RELIABILITY":
+                    Controller.Frontend.Reliability();
+                    break;
+                case "POLLCONTROL":
+                    Controller.Frontend.PollControl();
+                    break;
+                case "POLLCHANGE":
+                    Controller.Frontend.PollChange();
+                    break;
+                case "POLLSTATIC":
+                    Controller.Frontend.PollSataic();
+                    break;
+            }
+        }
 
         private void GetHarnessNetInfo()
         {

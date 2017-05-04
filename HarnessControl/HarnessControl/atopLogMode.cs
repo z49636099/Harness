@@ -14,5 +14,11 @@ namespace HarnessControl
         SystemError,
 
         ProcessInfo,
+
+        TestFail,
+
+        TestSuccess,
+        
+        TestInfo,
     }
 }

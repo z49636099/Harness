@@ -12,7 +12,7 @@ namespace HarnessControl
         public TcpClient clientSocket;
         private string ConfigData { get; set; }
 
-        public event Action<string> ReceiveEvent;
+        public event Action<string, string> ReceiveEvent;
 
         public ConfigSocketAccept()
         {
@@ -70,18 +70,30 @@ namespace HarnessControl
         {
             try
             {
-                Data = Data.Replace("\r\n", "\n");
-                string[] lineArray = Data.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var line in lineArray)
+                // Data = Data.Replace("\r\n", "\n");
+                // string[] lineArray = Data.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                ConfigData += Data;
+                if (ConfigData.StartsWith("Setting\r\n"))
                 {
-                    if (line.ToUpper() == "END")
+                    if (ConfigData.ToUpper().Contains("\r\nEND\r\n"))
                     {
-                        ReceiveEvent?.BeginInvoke(ConfigData, new AsyncCallback((target) =>
-                        {
-                            ConfigData = "";
-                        }), null);
+                        ConfigData = ConfigData.Remove(ConfigData.Length - 7);
+                        TriggerEvent("Config", ConfigData);
+                        //ReceiveEvent?.BeginInvoke("Config", ConfigData, new AsyncCallback((target) =>
+                        // {
+                        //     ConfigData = "";
+                        // }), null);
+                        return;
                     }
-                    ConfigData += line + Environment.NewLine;
+                }
+                else if (ConfigData.StartsWith("Setup"))
+                {
+                    TriggerEvent("Setup", ConfigData.Replace("Setup ", "").Replace("\r\n", ""));
+                }
+                else if (ConfigData.StartsWith("Test"))
+                {
+                    TriggerEvent("Test", ConfigData.Replace("Test ", "").Replace("\r\n", ""));
                 }
             }
             catch (Exception ex)
@@ -89,6 +101,14 @@ namespace HarnessControl
                 atopLog.WriteLog(atopLogMode.SocketInfo, clientSocket.Client.LocalEndPoint + ": Config format fail : " + ex.Message);
                 Send("Error");
             }
+        }
+
+        private void TriggerEvent(string Status, string Data)
+        {
+            ReceiveEvent?.BeginInvoke(Status, Data, new AsyncCallback((target) =>
+            {
+                ConfigData = "";
+            }), null);
         }
 
         public void Close()

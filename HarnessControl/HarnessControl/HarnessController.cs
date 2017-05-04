@@ -15,6 +15,8 @@ namespace HarnessControl
         public List<HarnessSession> SessionList = new List<HarnessSession>();
         public List<ConfigMappingItem> MappingItemList = new List<ConfigMappingItem>();
 
+        public atopPortocolBase Frontend { get; set; }
+
         public string ConfigPath { get; set; }
 
         public void ParsingConfigFormFile()
@@ -69,35 +71,13 @@ namespace HarnessControl
                 ConfigMappingItem Item = Session.MappingItemList.FirstOrDefault();
                 if (Item != null)
                 {
-                    string Name = "";
                     if (Session.END == EnumEnd.Backend)
                     {
-                        Name = Item.BackendName;
+                        Session.Protocol = Item.BackendProtocolType;
                     }
                     else
                     {
-                        Name = Item.FrontendName;
-                    }
-
-                    if (Name.StartsWith("101"))
-                    {
-                        Session.Protocol = EnumProtocolType.IEC101;
-                    }
-                    else if (Name.StartsWith("104"))
-                    {
-                        Session.Protocol = EnumProtocolType.IEC104;
-                    }
-                    else if (Name.StartsWith("Mo"))
-                    {
-                        Session.Protocol = EnumProtocolType.Modbus;
-                    }
-                    else if (Name.StartsWith("DN"))
-                    {
-                        Session.Protocol = EnumProtocolType.DNP3;
-                    }
-                    else
-                    {
-                        throw new Exception("No support :" + Name);
+                        Session.Protocol = Item.FrontendProtocolType;
                     }
                 }
             }
@@ -117,6 +97,49 @@ namespace HarnessControl
                 if (Session.END == EnumEnd.Backend)
                 {
                     Session.AddPoint();
+                }
+                else
+                {
+                }
+            }
+        }
+
+        public void Setup(string SessionName)
+        {
+            var Session = SessionList.Where(a => a.Name == SessionName).FirstOrDefault();
+            if (Session == null)
+            {
+                throw new Exception("No find " + SessionName);
+            }
+            HarnessProcess P = new HarnessProcess();
+            P.ProcessStart(@"C:\Program Files\Triangle MicroWorks\Protocol Test Harness\bin\tmwtest.exe",
+                           $"-tcl \"source {Application.StartupPath.Replace("\\", "/") + "/"}SocketServer.tcl\";\"CreateSocketServer {Session.HarnessSocketInfo.Port}\"");
+            Thread.Sleep(3000);
+            Session.SocketClientConnect();
+            Session.Setup();
+            Thread.Sleep(3000);
+            if (Session.END == EnumEnd.Backend)
+            {
+                Session.AddPoint();
+            }
+            else
+            {
+                switch (Session.Protocol)
+                {
+                    case EnumProtocolType.Modbus:
+                        Frontend = new Modbus();
+                        break;
+                }
+                Frontend.Session = Session;
+                foreach (var ClientSession in SessionList.Where(a => a.END == EnumEnd.Backend).OrderBy(a => a.Index))
+                {
+                    HarnessInfo Info = HarnessInfoList.Where(a => a.Type == EnumEnd.Backend)
+                                                       .Where(a => a.Index == ClientSession.Index)
+                                                       .Select(a => a).First();
+                    HarnessTCPClient SocketClient = new HarnessTCPClient();
+                    SocketClient.Connect(Info.IPAddress, ClientSession.BackendSocketPort);
+                    //SocketClient.Connect("10.0.176.200", ClientSession.BackendSocketPort);
+                    Frontend.SocketClientList.Add(SocketClient);
                 }
             }
         }

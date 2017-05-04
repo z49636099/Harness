@@ -22,14 +22,17 @@ namespace HarnessControl
             ShowMsg(LogMode.ToString() + ":" + Message);
             switch (LogMode)
             {
-                //case atopLogMode.TestFail:
-                //    Display(ConsoleColor.Black, ConsoleColor.Red, Message);
-                //    logger.Info(Message);
-                //    break;
-                //case atopLogMode.TestSuccess:
-                //    Display(ConsoleColor.Black, ConsoleColor.Blue, Message);
-                //    logger.Info(Message);
-                //    break;
+                case atopLogMode.TestFail:
+                    Display(ConsoleColor.Black, ConsoleColor.Red, Message);
+                    logger.Info(Message);
+                    break;
+                case atopLogMode.TestSuccess:
+                    Display(ConsoleColor.Black, ConsoleColor.Blue, Message);
+                    logger.Info(Message);
+                    break;
+                case atopLogMode.TestInfo:
+                    logger.Info(Message);
+                    break;
                 //case atopLogMode.XelasCommandError:
                 //    Display(ConsoleColor.Black, ConsoleColor.Yellow, Message);
                 //    logger.Error(Message);

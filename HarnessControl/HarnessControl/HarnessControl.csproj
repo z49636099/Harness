@@ -66,13 +66,18 @@
   <ItemGroup>
     <Compile Include="atopLog.cs" />
     <Compile Include="atopLogMode.cs" />
-    <Compile Include="atopPortocolBase.cs" />
+    <Compile Include="Protocol\atopPortocolBase.cs" />
     <Compile Include="ConfigMappingItem.cs" />
     <Compile Include="ConfigSocketAccept.cs" />
+    <Compile Include="HarnessFrontendSocketAccept.cs" />
+    <Compile Include="HarnessFrontendSocketServer.cs" />
+    <Compile Include="Protocol\DNP3.cs" />
+    <Compile Include="Protocol\Modbus.cs" />
     <Compile Include="Enum\EnumConnectionType.cs" />
     <Compile Include="Enum\EnumEnd.cs" />
     <Compile Include="Enum\HarnessCommand.cs" />
     <Compile Include="Enum\EnumProtocolType.cs" />
+    <Compile Include="Enum\PointValueRange.cs" />
     <Compile Include="HarnessBackendSocketAccept.cs" />
     <Compile Include="ConfigSocketServer.cs" />
     <Compile Include="HarnessController.cs" />

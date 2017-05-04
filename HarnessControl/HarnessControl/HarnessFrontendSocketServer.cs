@@ -8,19 +8,18 @@ using System.Threading.Tasks;
 
 namespace HarnessControl
 {
-    public class ConfigSocketServer
+    public class HarnessFrontendSocketServer
     {
         public TcpListener Listener;
-        public ConfigSocketAccept Client { get; set; }
-
-        public event Action<string, string> ReceiveEvent;
+        public List<HarnessFrontendSocketAccept> ClientList = new List<HarnessFrontendSocketAccept>();
+        public List<ConfigMappingItem> MappingItemList = new List<ConfigMappingItem>();
         public HarnessTCPClient HarnessSocket { get; set; }
+
 
         public void Start(int Port)
         {
-
             Listener = new TcpListener(IPAddress.Parse(GetLocalIP()), Port);
-            atopLog.WriteLog(atopLogMode.SocketInfo, "Socket Server is ready : " + Listener.LocalEndpoint);
+            atopLog.WriteLog(atopLogMode.SocketInfo, "Socket Server is ready : " +Listener.LocalEndpoint);
             TcpClient clientSocket = new TcpClient();
             try
             {
@@ -31,19 +30,21 @@ namespace HarnessControl
                     counter += 1;
                     clientSocket = Listener.AcceptTcpClient();
                     atopLog.WriteLog(atopLogMode.SocketInfo, "Socket Server is connect :" + clientSocket.Client.LocalEndPoint);
-                    Client?.Close();
-                    Client = new ConfigSocketAccept();
-                    Client.ReceiveEvent += Client_ReceiveEvent;
-                    Client.startClient(clientSocket);
+                    HarnessFrontendSocketAccept client = new HarnessFrontendSocketAccept();
+                    ClientList.Add(client);
+                    client.startClient(clientSocket, counter.ToString());
                 }
             }
             catch (Exception ex)
             {
-                atopLog.WriteLog(atopLogMode.SocketInfo, "Socket Server Exception : " + Listener.LocalEndpoint + "==>" + ex.Message);
+                atopLog.WriteLog(atopLogMode.SocketInfo, "Socket Server Exception :" + Listener.LocalEndpoint + "==>" + ex.Message);
             }
-            Client?.Close();
+            foreach (var client in ClientList)
+            {
+                client.Close();
+            }
             Listener.Stop();
-            atopLog.WriteLog(atopLogMode.SocketInfo, "Socket Server is stop : " + Listener.LocalEndpoint);
+            atopLog.WriteLog(atopLogMode.SocketInfo, "Socket Server is stop :" + Listener.LocalEndpoint);
         }
 
         private string GetLocalIP()
@@ -62,12 +63,6 @@ namespace HarnessControl
             }
             throw new Exception("Get local ip fail.");
         }
-
-        private void Client_ReceiveEvent(string Config, string obj)
-        {
-            ReceiveEvent?.BeginInvoke(Config, obj, null, null);
-        }
     }
-
 
 }

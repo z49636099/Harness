@@ -22,13 +22,13 @@ namespace HarnessControl
         }
         private void doChat()
         {
-            byte[] bytesFrom = new byte[10025];
 
             NetworkStream networkStream = clientSocket.GetStream();
             try
             {
                 while (clientSocket.Connected)
                 {
+                    byte[] bytesFrom = new byte[clientSocket.ReceiveBufferSize];
                     networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
                     string dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom).Replace("\0", "");
 
@@ -191,7 +191,7 @@ namespace HarnessControl
             {
                 int DataIndex = i - StartPoint;
                 string SocketCmd = string.Format(CmdFormat, Cmd, i, DataArray[DataIndex]);
-                string PointData = HarnessSocket.Send(SocketCmd).Replace("\r\n", "");
+                string PointData = HarnessSocket.Send(SocketCmd,-1).Replace("\r\n", "");
             }
             return "0";
         }

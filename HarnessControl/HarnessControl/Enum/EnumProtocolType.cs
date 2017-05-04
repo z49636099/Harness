@@ -12,5 +12,6 @@ namespace HarnessControl
         Modbus,
         IEC101,
         IEC104,
+        IEC61850,
     }
 }

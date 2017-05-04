@@ -10,6 +10,8 @@ namespace HarnessControl
     public class HarnessSession
     {
         public List<ConfigMappingItem> MappingItemList = new List<ConfigMappingItem>();
+
+        public string Name { get; set; }
         public HarnessInfo HarnessSocketInfo { get; set; }
         public int Index { get; set; }
         public EnumEnd END { get; set; }
@@ -41,7 +43,7 @@ namespace HarnessControl
         public HarnessSession(string SettingData)
         {
             SettingInfo = SettingData.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
+            Name = SettingInfo[0];
             #region Get Connection Type
             if (SettingInfo[1].Contains("ETH"))
             {
@@ -80,7 +82,7 @@ namespace HarnessControl
         {
             SocketClient = new HarnessTCPClient();
             SocketClient.Connect(HarnessSocketInfo.IPAddress, HarnessSocketInfo.Port);
-            if(END == EnumEnd.Backend)
+            if (END == EnumEnd.Backend)
             {
                 BackendServer.HarnessSocket = SocketClient;
                 Task.Factory.StartNew(new Action(() => { BackendServer.Start(BackendSocketPort); }));
@@ -117,19 +119,19 @@ namespace HarnessControl
                 switch (Protocol)
                 {
                     case EnumProtocolType.Modbus:
-                        SocketClient.Send("smbdb action clear");
+                        SocketClient.Send("smbdb action clear", -1);
                         AddCmd = "{0} add point {1} value 0";
                         break;
                     case EnumProtocolType.IEC104:
-                        SocketClient.Send("s104db action clear");
+                        SocketClient.Send("s104db action clear", -1);
                         AddCmd = "{0} add ioa {1} value 0";
                         break;
                     case EnumProtocolType.IEC101:
-                        SocketClient.Send("s101db action clear");
+                        SocketClient.Send("s101db action clear", -1);
                         AddCmd = "{0} add ioa {1} value 0";
                         break;
                     case EnumProtocolType.DNP3:
-                        SocketClient.Send("sdnpdb action clear");
+                        SocketClient.Send("sdnpdb action clear", -1);
                         AddCmd = "{0} add value 0";
                         break;
                 }
