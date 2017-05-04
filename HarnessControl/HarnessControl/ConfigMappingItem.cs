@@ -14,20 +14,42 @@ namespace HarnessControl
             MappingString = Item;
             string[] ItemArray = Item.Split(' ');
             FrontendName = ItemArray[0];
-            FrontendDataType = ItemArray[1];
-            FrontendStart = int.Parse(ItemArray[2]);
-            FrontendCount = int.Parse(ItemArray[3]);
             BackendName = ItemArray[4];
-            BackendDataType = ItemArray[5];
-            BackendStart = int.Parse(ItemArray[6]);
-            BackendCount = int.Parse(ItemArray[7]);
-            Port = int.Parse(ItemArray[8]);
-
             BackendProtocolType = GetProtocolType(BackendName);
             FrontendProtocolType = GetProtocolType(FrontendName);
-        }
+            FrontendDataType = ItemArray[1];
+            BackendDataType = ItemArray[5];
 
-        public string MappingString { get;private set; }
+            switch (FrontendProtocolType)
+            {
+                case EnumProtocolType.IEC61850:
+                    FrontendServer = ItemArray[2];
+                    FrontendTag = ItemArray[3];
+                    break;
+                default:
+                    FrontendStart = int.Parse(ItemArray[2]);
+                    FrontendCount = int.Parse(ItemArray[3]);
+                    break;
+            }
+
+            switch (BackendProtocolType)
+            {
+                case EnumProtocolType.IEC61850:
+                    BackendServer = ItemArray[2];
+                    BackendTag = ItemArray[3];
+                    break;
+                default:
+                    BackendStart = int.Parse(ItemArray[6]);
+                    BackendCount = int.Parse(ItemArray[7]);
+                    break;
+            }
+
+            Port = int.Parse(ItemArray[8]);
+        }
+        //name servername tagname 
+
+
+        public string MappingString { get; private set; }
 
         private string _FrontendName { get; set; }
         public string FrontendName
@@ -83,11 +105,15 @@ namespace HarnessControl
         public string FrontendDataType { get; set; }
         public int FrontendStart { get; set; }
         public int FrontendCount { get; set; }
+        public string FrontendServer { get; set; }
+        public string FrontendTag { get; set; }
 
         public EnumProtocolType BackendProtocolType { get; set; }
         public string BackendDataType { get; set; }
         public int BackendStart { get; set; }
         public int BackendCount { get; set; }
+        public string BackendServer { get; set; }
+        public string BackendTag { get; set; }
         public int Port { get; set; }
     }
 }

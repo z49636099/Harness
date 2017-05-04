@@ -29,7 +29,7 @@ namespace HarnessControl
                         continue;
                     }
                     atopLog.WriteLog(atopLogMode.TestInfo, "Polled_Change " + Item.MappingString);
-                    string Command = GetClientCMD(Item.FrontendDataType);
+                    string Command = HarnessCommand.GetMasterCommand(Item.FrontendDataType, EnumProtocolType.Modbus);
 
                     //單次讀取
                     if (!SetRandomValueToServer(Item))
@@ -38,7 +38,7 @@ namespace HarnessControl
                     }
                     Thread.Sleep(5000);
                     int Quantity = 0;
-                    string DataVariable;
+                    Dictionary<string, string> DataVariable;
                     if (Item.FrontendCount * 2 == Item.BackendCount)
                         Quantity = 2;
                     else if (Item.FrontendCount == Item.BackendCount)
@@ -86,7 +86,7 @@ namespace HarnessControl
                         continue;
                     }
                     atopLog.WriteLog(atopLogMode.TestInfo, "Polled_Control " + Item.MappingString);
-                    string Command = GetClientCMD(Item.FrontendDataType);
+                    string Command = HarnessCommand.GetMasterCommand(Item.FrontendDataType, EnumProtocolType.Modbus);
                     int[] RandomValue = PointValueRange.GetRandomValue(Item.BackendDataType, Item.BackendCount);
                     for (int Index = 0; Index < Item.FrontendCount; Index++)
                     {
@@ -106,7 +106,7 @@ namespace HarnessControl
         {
             throw new NotImplementedException();
         }
-        
+
 
 
         private void DataCompare_Control(int[] randomValue, ConfigMappingItem item)
@@ -129,9 +129,9 @@ namespace HarnessControl
             }
         }
 
-        public void DataCompare(string DataVariable, int StartPoint)
+        public void DataCompare(Dictionary<string, string> DicDataVariable, int StartPoint)
         {
-            Dictionary<string, string> DicDataVariable = GetDataVariableDic(DataVariable);
+            //Dictionary<string, string> DicDataVariable = GetDataVariableDic(DataVariable);
             Dictionary<int, int> DicPointValue = new Dictionary<int, int>();
             string DataType = "";
             switch (ToInt(DicDataVariable["FC"]))
@@ -159,7 +159,7 @@ namespace HarnessControl
         {
             int VariableMaxPoint = DicPointValue.Select(a => a.Key).Max();
             int VariableMinPoint = DicPointValue.Select(a => a.Key).Min();
-            string ClientCommand = GetClientCMD(DataType);
+            string ClientCommand = HarnessCommand.GetMasterCommand(DataType, EnumProtocolType.Modbus);
             foreach (var Item in Session.MappingItemList)
             {
                 int tmpMaxPoint = -1;
@@ -204,7 +204,7 @@ namespace HarnessControl
         private void DataCompare1(Dictionary<int, int> DicFrontVariable, ConfigMappingItem Item, int tmpMaxPoint, int tmpMinPoint)
         {
             HarnessTCPClient Client = SocketClientList[Item.BackendIndex - 1];
-            string ServerCommand = HarnessCommand.GetServerCommand(Item.FrontendDataType, Item.BackendProtocolType);
+            string ServerCommand = HarnessCommand.GetSlaveCommand(Item.FrontendDataType, Item.BackendProtocolType);
             int QuantityType = Item.FrontendCount - Item.BackendCount;
             int BackendStart = -1;
             int BackendCount = -1;
@@ -273,46 +273,16 @@ namespace HarnessControl
                 atopLog.WriteLog(atopLogMode.TestFail, $"DataType : {Item.FrontendDataType},No Such point : {PointString}");
             }
         }
-        
 
-        public string SendHassionCmd(string Command)
+
+        public override Dictionary<string, string> SendHassionCmd(string Command)
         {
-            string DataVariable = null;
+            Dictionary<string, string> DicDataVariable = null;
             try
             {
-                HarnessTCPClient Client = Session.SocketClient;
+                DicDataVariable = base.SendHassionCmd(Command);
                 string[] CommandArr = Command.Split(' ');
                 string HCmd = CommandArr[0];
-                string Help = Client.Send(HCmd + " ?");
-                if (Help.Contains("feedback") && !Command.Contains("feedback"))
-                {
-                    Command += " feedback false";
-                }
-                if (Help.Contains("statVariable") && !Command.Contains("statVariable"))
-                {
-                    Command += " statVariable stat";
-                }
-                if (Help.Contains("dataVariable") && !Command.Contains("dataVariable"))
-                {
-                    Command += " dataVariable data";
-                }
-                string Response = Client.Send(Command);
-                CheckStatVariable(Client, Response, Command);
-                DataVariable = Response;
-                if (Command.Contains("dataVariable"))
-                {
-                    DataVariable = Client.Send("get [array get ::data]").Trim();
-                }
-
-                var DicDataVariable = GetDataVariableDic(DataVariable);
-
-                if (DicDataVariable.ContainsKey("PARSINGSTATUS"))
-                {
-                    if (DicDataVariable["PARSINGSTATUS"] != "Success")
-                    {
-                        throw new TestException($"Parsing Status Fail , Status = {DicDataVariable["PARSINGSTATUS"]} ,Expected : Success");
-                    }
-                }
 
                 if (ToInt(DicDataVariable["FC"]) != GetFunctionCode(HCmd))
                 {
@@ -362,8 +332,10 @@ namespace HarnessControl
                 atopLog.WriteLog(atopLogMode.SystemError, ex.Message);
                 return null;
             }
-            return DataVariable;
+            return DicDataVariable;
         }
+
+
 
         public override void CheckStatVariable(HarnessTCPClient Client, string Response, string Command)
         {
@@ -388,20 +360,20 @@ namespace HarnessControl
 
 
 
-        
-        public string GetClientCMD(string DataType)
-        {
-            switch (DataType)
-            {
-                case "WCoi": return "mmbwritecoil";
-                case "WHRe": return "mmbwritehreg";
-                case "Coil": return "mmbreadcoils";
-                case "Disc": return "mmbreaddinputs";
-                case "IReg": return "mmbreadiregs";
-                case "HReg": return "mmbreadhregs";
-                default: throw new Exception("No such DataType :" + DataType);
-            }
-        }
+
+        //public string GetClientCMD(string DataType)
+        //{
+        //    switch (DataType)
+        //    {
+        //        case "WCoi": return "mmbwritecoil";
+        //        case "WHRe": return "mmbwritehreg";
+        //        case "Coil": return "mmbreadcoils";
+        //        case "Disc": return "mmbreaddinputs";
+        //        case "IReg": return "mmbreadiregs";
+        //        case "HReg": return "mmbreadhregs";
+        //        default: throw new Exception("No such DataType :" + DataType);
+        //    }
+        //}
 
         public int GetFunctionCode(string Cmd)
         {

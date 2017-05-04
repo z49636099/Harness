@@ -137,7 +137,7 @@ namespace HarnessControl
                 }
                 foreach (var MappingItem in MappingItemList)
                 {
-                    string Cmd = HarnessCommand.GetServerCommand(MappingItem.BackendDataType, Protocol);
+                    string Cmd = HarnessCommand.GetSlaveCommand(MappingItem.BackendDataType, Protocol);
                     int EndPoint = MappingItem.BackendStart + MappingItem.BackendCount - 1;
                     for (int pointIndex = MappingItem.BackendStart; pointIndex <= EndPoint; pointIndex++)
                     {

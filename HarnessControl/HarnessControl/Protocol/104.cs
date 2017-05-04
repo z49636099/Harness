@@ -5,8 +5,8 @@ using System.Text;
 
 namespace HarnessControl.Protocol
 {
-    public class _104 : atopPortocolBase
-    {
+    //public class _104 : atopPortocolBase
+    //{
 
-    }
+    //}
 }

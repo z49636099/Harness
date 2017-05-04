@@ -105,62 +105,28 @@ namespace HarnessControl
             string QualifierCMD = GetQualifierCMD(Qualifier);
         }
 
-        private Dictionary<string, string> SendHarnessCommand(string Command)
+        public override Dictionary<string, string> SendHassionCmd(string Command)
         {
-            string DataVariable = null;
             Dictionary<string, string> DicDataVariable = new Dictionary<string, string>();
             try
             {
-                HarnessTCPClient Client = Session.SocketClient;
+                DicDataVariable = base.SendHassionCmd(Command);
                 string[] CommandArr = Command.Split(' ');
                 string HCmd = CommandArr[0];
-                string Help = Client.Send(HCmd + " ?");
-                if (Help.Contains("feedback") && !Command.Contains("feedback"))
-                {
-                    Command += " feedback false";
-                }
-                if (Help.Contains("statVariable") && !Command.Contains("statVariable"))
-                {
-                    Command += " statVariable stat";
-                }
-                if (Help.Contains("dataVariable") && !Command.Contains("dataVariable"))
-                {
-                    Command += " dataVariable data";
-                }
-                string Response = Client.Send(Command);
+               
 
-                CheckStatVariable(Client, Response, Command);
+                //if (Help.Contains("variation") && HCmd.Contains("mdnpbin"))
+                //{
+                //    string HelpVarLine = Help.Split('\n').Where(a => a.Contains("variation")).First();
+                //    Regex R = new Regex(@"\[(.*)\]");
+                //    Match M = R.Match(HelpVarLine);
 
-
-
-
-                DataVariable = Response;
-                if (Command.Contains("dataVariable"))
-                {
-                    DataVariable = Client.Send("get [array get ::data]").Trim();
-                }
-
-                DicDataVariable = GetDataVariableDic(DataVariable);
-
-                if (DicDataVariable.ContainsKey("PARSINGSTATUS"))
-                {
-                    if (DicDataVariable["PARSINGSTATUS"] != "Success")
-                    {
-                        throw new TestException($"Parsing Status Fail , Status = {DicDataVariable["PARSINGSTATUS"]} ,Expected : Success");
-                    }
-                }
-
-                if (Help.Contains("variation") && HCmd.Contains("mdnpbin"))
-                {
-                    string HelpVarLine = Help.Split('\n').Where(a => a.Contains("variation")).First();
-                    Regex R = new Regex(@"\[(.*)\]");
-                    Match M = R.Match(HelpVarLine);
-
-                }
+                //}
 
                 string Qual, Grp;
+                int Start, Stop;
                 int[] Value;
-                Dictionary<string, string> DicCommandPara = GetDataVariableDic(string.Join(" ", CommandArr.Skip(1)));
+                Dictionary<string, string> DicCommandPara = GetCommandPara(Command);
                 switch (HCmd)
                 {
                     case "mdnpread":
@@ -177,13 +143,33 @@ namespace HarnessControl
                     case "mdnpbincmd":
                         Qual = "16bitindex";
                         Grp = "12";
-                        if(DicCommandPara.ContainsKey("start"))
+                        if (DicCommandPara.ContainsKey("start"))
                         {
-                            //Value = 
+                            Value = DicCommandPara["value"].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                                           .Select(a => GetValueInt(a))
+                                                           .ToArray();
+                            Start = ToInt(DicCommandPara["start"]);
+                            Stop = ToInt(DicCommandPara["stop"]);
+                        }
+                        else if (DicCommandPara.ContainsKey("point"))
+                        {
+                            Value = DicCommandPara["control"].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                                           .Select(a => GetValueInt(a))
+                                                           .ToArray();
+                            string[] PointIndexBin = DicCommandPara["point"].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            Start = ToInt(PointIndexBin[0]);
+                            Stop = ToInt(PointIndexBin[PointIndexBin.Length - 1]);
                         }
                         break;
                     case "mdnpanlgcmd":
+                        Qual = "16bitindex";
+                        Grp = "41";
+                        string[] PointIndexAnlg = DicCommandPara["point"].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        Start = ToInt(PointIndexAnlg[0]);
+                        Stop = ToInt(PointIndexAnlg[PointIndexAnlg.Length - 1]);
                         break;
+                    default:
+                        throw new TestException("no support this command : " + HCmd);
                 }
 
 
@@ -206,9 +192,34 @@ namespace HarnessControl
             return DicDataVariable;
         }
 
-        private int GetValueInt (string Value)
+        private Dictionary<string, string> GetCommandPara(string Command)
         {
-            switch(Value)
+            Dictionary<string, string> DicPara = new Dictionary<string, string>();
+            string CMD = string.Join(" ", Command.Split(' ').Skip(1));
+            string[] SplitMark = CMD.Split(new char[] { '"' }, StringSplitOptions.RemoveEmptyEntries);
+            List<string> CmdPara = new List<string>();
+            for (int i = 0; i < SplitMark.Length; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    CmdPara.AddRange(SplitMark[i].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                }
+                else
+                {
+                    CmdPara.Add(SplitMark[i]);
+                }
+            }
+            for (int i = 0; i < CmdPara.Count; i += 2)
+            {
+                DicPara.Add(CmdPara[i], CmdPara[i + 1]);
+            }
+            return DicPara;
+        }
+
+
+        private int GetValueInt(string Value)
+        {
+            switch (Value)
             {
                 case "lon":
                     return 3;

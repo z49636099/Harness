@@ -12,9 +12,9 @@ namespace HarnessControl
         /// <param name="DataType"></param>
         /// <param name="Type"></param>
         /// <returns></returns>
-        public static string GetServerCommand(string DataType, EnumProtocolType Type)
+        public static string GetSlaveCommand(string DataType, EnumProtocolType Type)
         {
-            string Cmd = GetCommand(DataType);
+            string Cmd = SlaveCommand(DataType);
             switch (Type)
             {
                 case EnumProtocolType.DNP3:
@@ -33,24 +33,41 @@ namespace HarnessControl
         /// <param name="DataType"></param>
         /// <param name="Type"></param>
         /// <returns></returns>
-        public static string GetClientCommand(string DataType, EnumProtocolType Type)
+        public static string GetMasterCommand(string DataType, EnumProtocolType Type)
         {
-            string Cmd = GetCommand(DataType);
+            string Cmd = MasterCommand(DataType);
             switch (Type)
             {
                 case EnumProtocolType.DNP3:
                 case EnumProtocolType.Modbus:
-                    return "m" + Cmd;
+                    return Cmd;
                 case EnumProtocolType.IEC101:
-                    return "m101" + Cmd;
+                    return "";
                 case EnumProtocolType.IEC104:
-                    return "m104" + Cmd;
+                    return "";
                 default:
                     throw new Exception("Get Server Command Fail.");
             }
         }
 
-        private static string GetCommand(string DataType)
+        private static string MasterCommand(string DataType)
+        {
+            switch (DataType)
+            {
+                case "Coil": return "mmbreadcoils";
+                case "WCoi": return "mmbwritecoil";
+                case "Disc": return "mmbreaddinputs";
+                case "IReg": return "mmbreadiregs";
+                case "HReg": return "mmbreadhregs";
+                case "WHRe": return "mmbwritehreg";
+                case "AO": return "mdnpanlgcmd";
+                case "BO": return "mdnpbincmd";
+                default:
+                    throw new Exception("No such DataType : " + DataType);
+            }
+        }
+
+        private static string SlaveCommand(string DataType)
         {
             switch (DataType)
             {
@@ -81,9 +98,9 @@ namespace HarnessControl
                 case "BO": return "dnpbinout";
                 case "DI": return "dnpdblin";
                 case "CT": return "dnpcntr";
-            default:
+                default:
                     throw new Exception("No such DataType : " + DataType);
+            }
         }
-    }
     }
 }

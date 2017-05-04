@@ -77,7 +77,7 @@ namespace HarnessControl
                 HarnessTCPClient Client = SocketClientList[Item.BackendIndex - 1];
                 int[] SetValue = PointValueRange.GetRandomValue(Item.BackendDataType, Item.BackendCount);
                 string SetValueStr = string.Join(",", SetValue);
-                string Cmd = HarnessCommand.GetServerCommand(Item.BackendDataType, Item.BackendProtocolType);
+                string Cmd = HarnessCommand.GetSlaveCommand(Item.BackendDataType, Item.BackendProtocolType);
                 Client.Send(string.Format("Set {0} {1} {2} {3}", Cmd, Item.BackendStart, Item.BackendCount, SetValueStr), 5000);
 
                 int TryCount = 15;
@@ -135,7 +135,43 @@ namespace HarnessControl
                 }
             }
         }
+        public virtual Dictionary<string, string> SendHassionCmd(string Command)
+        {
+            var Client = Session.SocketClient;
+            string[] CommandArr = Command.Split(' ');
+            string HCmd = CommandArr[0];
+            string Help = Client.Send(HCmd + " ?");
+            if (Help.Contains("feedback") && !Command.Contains("feedback"))
+            {
+                Command += " feedback false";
+            }
+            if (Help.Contains("statVariable") && !Command.Contains("statVariable"))
+            {
+                Command += " statVariable stat";
+            }
+            if (Help.Contains("dataVariable") && !Command.Contains("dataVariable"))
+            {
+                Command += " dataVariable data";
+            }
+            string Response = Client.Send(Command);
+            CheckStatVariable(Client, Response, Command);
+            string DataVariable = Response;
+            if (Command.Contains("dataVariable"))
+            {
+                DataVariable = Client.Send("get [array get ::data]").Trim();
+            }
 
+            var DicDataVariable = GetDataVariableDic(DataVariable);
+            if (DicDataVariable.ContainsKey("PARSINGSTATUS"))
+            {
+                if (DicDataVariable["PARSINGSTATUS"] != "Success")
+                {
+                    throw new TestException($"Parsing Status Fail , Status = {DicDataVariable["PARSINGSTATUS"]} ,Expected : Success");
+                }
+            }
+
+            return DicDataVariable;
+        }
 
 
     }
