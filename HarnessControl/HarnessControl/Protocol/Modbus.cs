@@ -192,7 +192,9 @@ namespace HarnessControl
                     case EnumProtocolType.IEC101:
                     case EnumProtocolType.IEC104:
                     case EnumProtocolType.Modbus:
-                        DataCompare1(DicPointValue, Item, tmpMaxPoint, tmpMinPoint);
+                        Dictionary<int, int> DicBackendVariable = GetBackendData(Item, tmpMaxPoint, tmpMinPoint);
+                        if (DicBackendVariable == null) { continue; }
+                        DataCompare1(DicPointValue, DicBackendVariable, Item);
                         break;
                     case EnumProtocolType.IEC61850:
                         break;
@@ -201,33 +203,11 @@ namespace HarnessControl
         }
 
         /// <summary>DNP3 Modbus 101 104</summary>
-        private void DataCompare1(Dictionary<int, int> DicFrontVariable, ConfigMappingItem Item, int tmpMaxPoint, int tmpMinPoint)
+        private void DataCompare1(Dictionary<int, int> DicFrontVariable, Dictionary<int, int> DicBackendVariable, ConfigMappingItem Item)
         {
-            HarnessTCPClient Client = SocketClientList[Item.BackendIndex - 1];
-            string ServerCommand = HarnessCommand.GetSlaveCommand(Item.FrontendDataType, Item.BackendProtocolType);
-            int QuantityType = Item.FrontendCount - Item.BackendCount;
-            int BackendStart = -1;
-            int BackendCount = -1;
-            if (QuantityType == 0)
-            {
-                BackendStart = Item.BackendStart + tmpMinPoint - Item.FrontendStart;
-                BackendCount = tmpMaxPoint - tmpMinPoint + 1;
-            }
-            else if (QuantityType < 0)
-            {
-                atopLog.WriteLog(atopLogMode.TestFail, "No support : " + Item.MappingString);
-                return;
-                //BackendStart = Item.BackendStart + ((tmpMinPoint - Item.FrontendStart) * 2);
-                //BackendCount = (tmpMaxPoint - tmpMinPoint + 1) * 2;
-            }
-            else
-            {
-                BackendStart = Item.BackendStart + ((tmpMinPoint - Item.FrontendStart) / 2);
-                BackendCount = (tmpMaxPoint - tmpMinPoint + 1) / 2;
-            }
-            string Data = Client.Send(string.Format("Get {0} {1} {2}", ServerCommand, BackendStart, BackendCount));
-            Dictionary<int, string> DicBackendVariable = GetPointValueList(Data);
-            for (int i = tmpMinPoint; i <= tmpMaxPoint; i++)
+            int QuantityType = DicFrontVariable.Count - DicBackendVariable.Count;
+
+            for (int i = DicFrontVariable.Keys.Min(); i <= DicFrontVariable.Keys.Max(); i++)
             {
                 if (DicFrontVariable.Count == 0)
                     return;
@@ -235,7 +215,7 @@ namespace HarnessControl
                 {
                     int BackendPoint = i - Item.FrontendStart + Item.BackendStart;
                     var Variable = DicFrontVariable[i];
-                    if (Variable != ToInt(DicBackendVariable[BackendPoint]))
+                    if (Variable != DicBackendVariable[BackendPoint])
                     {
                         atopLog.WriteLog(atopLogMode.TestFail, $"DataType: {Item.FrontendDataType}, Point: {i} Frontend value {Variable}, Backend Value: {DicBackendVariable[BackendPoint]}");
                     }
@@ -259,7 +239,7 @@ namespace HarnessControl
                             FrontendValue = LowValue * 65536 + HighValue;
                             break;
                     }
-                    if (FrontendValue != ToInt(DicBackendVariable[BackendPoint]))
+                    if (FrontendValue != DicBackendVariable[BackendPoint])
                     {
                         atopLog.WriteLog(atopLogMode.TestFail, $"DataType: {Item.FrontendDataType}, Point: {i} Frontend High Value: {HighValue} Low Value: {LowValue}, Backend Value: {DicBackendVariable[BackendPoint]}");
                     }
@@ -274,6 +254,35 @@ namespace HarnessControl
             }
         }
 
+        private Dictionary<int, int> GetBackendData(ConfigMappingItem Item, int FrontendStartPoint, int FrontendEndPoint)
+        {
+            HarnessTCPClient Client = SocketClientList[Item.BackendIndex - 1];
+            Dictionary<int, int> DicBackendVariable = new Dictionary<int, int>();
+            string ServerCommand = HarnessCommand.GetSlaveCommand(Item.FrontendDataType, Item.BackendProtocolType);
+            int QuantityType = Item.FrontendCount - Item.BackendCount;
+            int BackendStart = -1;
+            int BackendCount = -1;
+            if (QuantityType == 0)
+            {
+                BackendStart = Item.BackendStart + FrontendStartPoint - Item.FrontendStart;
+                BackendCount = FrontendEndPoint - FrontendStartPoint + 1;
+            }
+            else if (QuantityType < 0)
+            {
+                atopLog.WriteLog(atopLogMode.TestFail, "No support : " + Item.MappingString);
+                return null;
+                //BackendStart = Item.BackendStart + ((tmpMinPoint - Item.FrontendStart) * 2);
+                //BackendCount = (tmpMaxPoint - tmpMinPoint + 1) * 2;
+            }
+            else
+            {
+                BackendStart = Item.BackendStart + ((FrontendStartPoint - Item.FrontendStart) / 2);
+                BackendCount = (FrontendEndPoint - FrontendStartPoint + 1) / 2;
+            }
+            string Data = Client.Send(string.Format("Get {0} {1} {2}", ServerCommand, BackendStart, BackendCount));
+            DicBackendVariable = GetPointValueList(Data);
+            return DicBackendVariable;
+        }
 
         public override Dictionary<string, string> SendHassionCmd(string Command)
         {

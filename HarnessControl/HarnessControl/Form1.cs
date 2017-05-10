@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -24,7 +25,7 @@ namespace HarnessControl
 
         ConfigSocketServer ControlServer = new ConfigSocketServer();
         private void Form1_Load(object sender, EventArgs e)
-        {
+        {            
             //Log Show Action
             atopLog.ShowMsg = new Action<string>((str) =>
             {
@@ -45,6 +46,14 @@ namespace HarnessControl
                 atopLog.WriteLog(atopLogMode.SystemError, ex.Message);
             }
 
+        }
+
+        private void NewMethod(string Msg)
+        {
+            this.Invoke(new MethodInvoker(() =>
+            {
+                txtMsg.AppendText(Msg);
+            }));
         }
 
         private void ControlServer_ReceiveEvent(string Status, string obj)

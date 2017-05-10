@@ -129,6 +129,9 @@ namespace HarnessControl
                     case EnumProtocolType.Modbus:
                         Frontend = new Modbus();
                         break;
+                    case EnumProtocolType.IEC104:
+                        Frontend = new IEC_104();
+                        break;
                 }
                 Frontend.Session = Session;
                 foreach (var ClientSession in SessionList.Where(a => a.END == EnumEnd.Backend).OrderBy(a => a.Index))

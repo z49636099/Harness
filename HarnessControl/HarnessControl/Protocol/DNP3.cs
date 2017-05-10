@@ -15,7 +15,6 @@ namespace HarnessControl
         public List<PointVarInfo> PolledStaticVar = new List<PointVarInfo>();
         public List<PointVarInfo> PolledControlVar = new List<PointVarInfo>();
 
-
         public DNP3()
         {
             FrontendClient = Session.SocketClient;
@@ -113,7 +112,7 @@ namespace HarnessControl
                 DicDataVariable = base.SendHassionCmd(Command);
                 string[] CommandArr = Command.Split(' ');
                 string HCmd = CommandArr[0];
-               
+
 
                 //if (Help.Contains("variation") && HCmd.Contains("mdnpbin"))
                 //{
@@ -123,10 +122,15 @@ namespace HarnessControl
 
                 //}
 
-                string Qual, Grp;
-                int Start, Stop;
-                int[] Value;
+                string Qual, Grp, Var = "";
+                int Start = 0, Stop = 0;
+                int[] Value = null;
                 Dictionary<string, string> DicCommandPara = GetCommandPara(Command);
+                string VarName = DicDataVariable.Where(a => Regex.IsMatch(a.Key, "OBJ.*,VAR")).Select(a => a.Key).FirstOrDefault();
+                if (VarName != null)
+                {
+                    Var = DicDataVariable[VarName];
+                }
                 switch (HCmd)
                 {
                     case "mdnpread":
@@ -138,6 +142,10 @@ namespace HarnessControl
                         else if (DicDataVariable.ContainsKey("group"))
                         {
                             Grp = DicDataVariable["group"];
+                        }
+                        else
+                        {
+                            Grp = "1";
                         }
                         break;
                     case "mdnpbincmd":
@@ -172,7 +180,89 @@ namespace HarnessControl
                         throw new TestException("no support this command : " + HCmd);
                 }
 
+                #region Check Qual
+                if (DicCommandPara.ContainsKey("qualifier"))
+                {
+                    Qual = DicCommandPara["qualifier"];
+                }
+                string[] QualNames = DicDataVariable.Where(a => Regex.IsMatch(a.Key, "OBJ.*,QUAL")).Select(a => a.Key).ToArray();
+                foreach (var QName in QualNames)
+                {
+                    int QualNum = GetQualifierNum(Qual);
+                    if (QualNum == 0x06)
+                        continue;
+                    if (QualNum != ToInt(DicDataVariable[QName]))
+                    {
+                        throw new TestException($"QUAL Fail : Qual = {DicDataVariable[QName]} , expected = {QualNum}");
+                    }
+                }
+                #endregion
 
+                #region check GRP
+                string[] GRPNames = DicDataVariable.Where(a => Regex.IsMatch(a.Key, "OBJ.*,GRP")).Select(a => a.Key).ToArray();
+                foreach (var GRPName in GRPNames)
+                {
+                    if (ToInt(DicDataVariable[GRPName]) != ToInt(Grp))
+                    {
+                        throw new TestException($"GRP Fail ,GRP = {DicDataVariable[GRPName]} , Expected = {Grp}");
+                    }
+                }
+                #endregion
+
+                #region Check AC
+                int AC = ToInt(DicDataVariable["AC"]);
+                if (AC > 0xcf || AC < 0xc0)
+                {
+                    throw new TestException($"AC Fail : GRP = {Grp} , VAR = {Var} ,AC = {AC}");
+                }
+                #endregion
+
+                #region Check FC
+                int FC = ToInt(DicDataVariable["FC"]);
+                if (FC != 0x81)
+                {
+                    throw new TestException($"FC Fail : GRP = {Grp} , VAR = {Var} ,FC = {FC}");
+                }
+                #endregion
+
+                #region Check IIN
+                int IIN = ToInt(DicDataVariable["IIN"]);
+                if (IIN != 0 && IIN != 0x1000)
+                {
+                    throw new TestException($"IIN Fail : GRP = {Grp} , VAR = {Var} ,IIN = {IIN}");
+                }
+                #endregion
+
+                #region Check OBJ.*,STATUS
+                string[] StatusNames = DicDataVariable.Keys.Where(a => Regex.IsMatch(a, "OBJ.*STATUS")).ToArray();
+                foreach (string Name in StatusNames)
+                {
+                    if (ToInt(DicDataVariable[Name]) != 0)
+                    {
+                        throw new TestException($"Status Fail : GRP = {Grp} ,VAR = {Var} , {Name} = {DicDataVariable[Name]} ,Expected = 0");
+                    }
+                }
+                #endregion
+
+                #region Check Data
+                if (Value != null)
+                {
+                    var DicPointData = GetPointValue(DicDataVariable);
+                    for (int i = Start; i <= Stop; i++)
+                    {
+                        int PointValue = Value[0];
+                        if (Value.Length != 0)
+                        {
+                            PointValue = Value[i - Start];
+                        }
+                        if (DicPointData[i] != PointValue)
+                        {
+                            throw new TestException($"Point Value Fail : Point = {i} , {DicPointData} != {PointValue}");
+                        }
+                    }
+                }
+
+                #endregion
             }
             catch (HarnessSocketException ex)
             {
@@ -192,29 +282,29 @@ namespace HarnessControl
             return DicDataVariable;
         }
 
-        private Dictionary<string, string> GetCommandPara(string Command)
+        //private void CheckFlag(Dictionary<string, string> DicDataVariable)
+        //{
+
+        //}
+
+        //private int GetFlag(string GPoint)
+        //{
+            
+        //}
+
+        private Dictionary<int, int> GetPointValue(Dictionary<string, string> DicDataVarible)
         {
-            Dictionary<string, string> DicPara = new Dictionary<string, string>();
-            string CMD = string.Join(" ", Command.Split(' ').Skip(1));
-            string[] SplitMark = CMD.Split(new char[] { '"' }, StringSplitOptions.RemoveEmptyEntries);
-            List<string> CmdPara = new List<string>();
-            for (int i = 0; i < SplitMark.Length; i++)
+            Dictionary<int, int> DicData = new Dictionary<int, int>();
+            string[] DataNames = DicDataVarible.Keys.Where(a => Regex.IsMatch(a, "OBJ.*,DATA.*|OBJ.*,CCODE.*")).ToArray();
+            foreach (string Name in DataNames)
             {
-                if (i % 2 == 0)
-                {
-                    CmdPara.AddRange(SplitMark[i].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-                }
-                else
-                {
-                    CmdPara.Add(SplitMark[i]);
-                }
+                string PointName = Name.Replace("DATA", "POINT").Replace("CCODE", "POINT");
+                DicData.Add(ToInt(DicDataVarible[PointName]), ToInt(DicDataVarible[Name]));
             }
-            for (int i = 0; i < CmdPara.Count; i += 2)
-            {
-                DicPara.Add(CmdPara[i], CmdPara[i + 1]);
-            }
-            return DicPara;
+            return DicData;
         }
+
+
 
 
         private int GetValueInt(string Value)
@@ -255,6 +345,29 @@ namespace HarnessControl
                     return "16bitindex";
                 default:
                     throw new TestException("No find Qualifier CMD : " + Qualifier);
+            }
+        }
+
+        private int GetQualifierNum(string Name)
+        {
+            switch (Name)
+            {
+                case "8bitstartstop":
+                    return 0;
+                case "16bitstartstop":
+                    return 1;
+                case "all":
+                    return 6;
+                case "8bitlimited":
+                    return 7;
+                case "16bitlimited":
+                    return 8;
+                case "8bitindex":
+                    return 0x17;
+                case "16bitindex":
+                    return 0x28;
+                default:
+                    return 0;
             }
         }
     }

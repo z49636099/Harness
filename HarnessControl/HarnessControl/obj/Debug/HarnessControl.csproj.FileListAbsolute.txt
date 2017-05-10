@@ -21,7 +21,7 @@ C:\Users\Acer\Documents\GitHub\Harness\HarnessControl\HarnessControl\obj\Debug\H
 C:\Users\Acer\Documents\GitHub\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.csproj.GenerateResource.Cache
 C:\Users\Acer\Documents\GitHub\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.exe
 C:\Users\Acer\Documents\GitHub\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.pdb
-C:\Users\Acer\Documents\GitHub\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.csprojResolveAssemblyReference.cache
 C:\Users\Bing\Documents\GitHub\Harness\HarnessControl\HarnessControl\bin\Debug\HarnessControl.exe.config
 C:\Users\Bing\Documents\GitHub\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.exe
 C:\Users\Bing\Documents\GitHub\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.pdb
+C:\Users\Acer\Documents\GitHub\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.csprojResolveAssemblyReference.cache

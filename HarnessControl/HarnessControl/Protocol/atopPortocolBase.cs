@@ -49,19 +49,20 @@ namespace HarnessControl
         }
 
         /// <summary>TCL Array to Dictionary</summary>
-        public Dictionary<int, string> GetPointValueList(string Value)
+        public Dictionary<int, int> GetPointValueList(string Value)
         {
-            Dictionary<int, string> Dic = new Dictionary<int, string>();
+            Dictionary<int, int> Dic = new Dictionary<int, int>();
             string[] ValueSplit = Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < ValueSplit.Length; i += 2)
             {
-                Dic.Add(int.Parse(ValueSplit[i]), ValueSplit[i + 1]);
+                Dic.Add(int.Parse(ValueSplit[i]), ToInt(ValueSplit[i + 1]));
             }
             return Dic;
         }
 
         public int ToInt(string Value)
         {
+            Value = Value.Trim();
             if (Value.Contains("0x"))
             {
                 return Convert.ToInt32(Value, 16);
@@ -86,11 +87,11 @@ namespace HarnessControl
                     bool IsUpdateFinish = true;
                     Thread.Sleep(100);
                     string Data = Client.Send(string.Format("Get {0} {1} {2}", Cmd, Item.BackendStart, Item.BackendCount));
-                    Dictionary<int, string> Dic = GetPointValueList(Data);
+                    Dictionary<int, int> Dic = GetPointValueList(Data);
                     for (int i = 0; i < SetValue.Length; i++)
                     {
                         int Index = i + Item.BackendStart;
-                        int ServerValue = int.Parse(Dic[Index]);
+                        int ServerValue = Dic[Index];
                         if (ServerValue != SetValue[i])
                         {
                             IsUpdateFinish = false;
@@ -173,6 +174,29 @@ namespace HarnessControl
             return DicDataVariable;
         }
 
+        public Dictionary<string, string> GetCommandPara(string Command)
+        {
+            Dictionary<string, string> DicPara = new Dictionary<string, string>();
+            string CMD = string.Join(" ", Command.Split(' ').Skip(1));
+            string[] SplitMark = CMD.Split(new char[] { '"' }, StringSplitOptions.RemoveEmptyEntries);
+            List<string> CmdPara = new List<string>();
+            for (int i = 0; i < SplitMark.Length; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    CmdPara.AddRange(SplitMark[i].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                }
+                else
+                {
+                    CmdPara.Add(SplitMark[i]);
+                }
+            }
+            for (int i = 0; i < CmdPara.Count; i += 2)
+            {
+                DicPara.Add(CmdPara[i], CmdPara[i + 1]);
+            }
+            return DicPara;
+        }
 
     }
 
