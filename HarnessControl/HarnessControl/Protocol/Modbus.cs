@@ -104,7 +104,6 @@ namespace HarnessControl
 
         public override void PollSataic()
         {
-            throw new NotImplementedException();
         }
 
 

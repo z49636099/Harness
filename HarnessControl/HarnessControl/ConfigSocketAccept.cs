@@ -95,6 +95,10 @@ namespace HarnessControl
                 {
                     TriggerEvent("Test", ConfigData.Replace("Test ", "").Replace("\r\n", ""));
                 }
+                else
+                {
+                    ConfigData = "";
+                }
             }
             catch (Exception ex)
             {

@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.txtMsg = new System.Windows.Forms.TextBox();
+            this.btnClientController = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // txtMsg
@@ -43,11 +44,23 @@
             this.txtMsg.Size = new System.Drawing.Size(799, 462);
             this.txtMsg.TabIndex = 0;
             // 
+            // btnClientController
+            // 
+            this.btnClientController.Font = new System.Drawing.Font("標楷體", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.btnClientController.Location = new System.Drawing.Point(653, 27);
+            this.btnClientController.Name = "btnClientController";
+            this.btnClientController.Size = new System.Drawing.Size(113, 54);
+            this.btnClientController.TabIndex = 1;
+            this.btnClientController.Text = "Client Controller";
+            this.btnClientController.UseVisualStyleBackColor = true;
+            this.btnClientController.Click += new System.EventHandler(this.btnClientController_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(799, 462);
+            this.Controls.Add(this.btnClientController);
             this.Controls.Add(this.txtMsg);
             this.Font = new System.Drawing.Font("新細明體", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.Margin = new System.Windows.Forms.Padding(4);
@@ -63,6 +76,7 @@
         #endregion
 
         private System.Windows.Forms.TextBox txtMsg;
+        private System.Windows.Forms.Button btnClientController;
     }
 }
 

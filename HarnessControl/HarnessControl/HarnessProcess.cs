@@ -33,10 +33,11 @@ namespace HarnessControl
         const int WM_KEYUP = 0x0101;
         const int WM_SYSCOMMAND = 0x0112;
         const int SC_CLOSE = 0x10;
+        public Process Process { get; set; }
 
         public void ProcessStart(string ProgramName, string Parameter)
         {
-            Process.Start(ProgramName, Parameter);
+            Process = Process.Start(ProgramName, Parameter);
             CloseHarnessDialog();
         }
 
@@ -75,7 +76,7 @@ namespace HarnessControl
                             SendMessage(player, SC_CLOSE, 0, 0);
                             Action = -1;
                         }
-                        if(--Count <=0)
+                        if (--Count <= 0)
                         {
                             Action = -1;
                         }

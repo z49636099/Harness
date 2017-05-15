@@ -24,6 +24,8 @@ namespace HarnessControl
         HarnessController Controller = new HarnessController();
 
         ConfigSocketServer ControlServer = new ConfigSocketServer();
+        private AutomationControl.Form1 FormAutomation = new AutomationControl.Form1();
+
         private void Form1_Load(object sender, EventArgs e)
         {            
             //Log Show Action
@@ -71,7 +73,9 @@ namespace HarnessControl
                         ControlServer.Client.Send("Harness is ready");
                         break;
                     case "Test":
+                        ControlServer.Client.Send(obj + " is Start");
                         StartTest(obj);
+                        ControlServer.Client.Send("Test is finally");
                         break;
                 }
             }
@@ -98,6 +102,8 @@ namespace HarnessControl
                 case "POLLSTATIC":
                     Controller.Frontend.PollSataic();
                     break;
+                default:
+                    throw new Exception("command error : " + obj);
             }
         }
 
@@ -143,6 +149,11 @@ namespace HarnessControl
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             ControlServer.Listener?.Stop();
+        }
+
+        private void btnClientController_Click(object sender, EventArgs e)
+        {
+            FormAutomation.Show();
         }
     }
 }

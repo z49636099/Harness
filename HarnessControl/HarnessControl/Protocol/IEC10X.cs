@@ -6,11 +6,33 @@ using System.Threading;
 
 namespace HarnessControl
 {
-    public class IEC_104 : atopPortocolBase
+    public class IEC_10X : atopPortocolBase
     {
 
         string[] PolledChangeDataType = { "MSP", "MDP", "MST", "MBS", "MVN", "MVS", "MVF" };
         string[] PolledControlDataType = { "CSCNA", "CDCNA", "CRCNA", "CBONA", "CSENA", "CSENB", "CSENC" };
+        private string ASDU { get; set; }
+
+        public IEC_10X()
+        {
+            switch (Session.Protocol)
+            {
+                case EnumProtocolType.IEC101:
+                    if (Session.ConnectionType == EnumConnectionType.ETH)
+                    {
+                        ASDU = Session.SettingInfo[5];
+                    }
+                    else if (Session.ConnectionType == EnumConnectionType.COM)
+                    {
+                        ASDU = Session.SettingInfo[9];
+                    }
+                    break;
+                case EnumProtocolType.IEC104:
+                    ASDU = Session.SettingInfo[5];
+                    break;
+            }
+        }
+
         public override void Patten(string PattenPath)
         {
             throw new NotImplementedException();
@@ -18,7 +40,6 @@ namespace HarnessControl
 
         public override void PollSataic()
         {
-            throw new NotImplementedException();
         }
 
         public override void PollChange()
@@ -34,7 +55,7 @@ namespace HarnessControl
                         continue;
                     }
                     atopLog.WriteLog(atopLogMode.TestInfo, "Polled_Change " + Item.MappingString);
-                    string Command = HarnessCommand.GetMasterCommand(Item.FrontendDataType, EnumProtocolType.IEC104);
+                    string Command = HarnessCommand.GetMasterCommand(Item.FrontendDataType, Item.FrontendProtocolType);
 
                     //單次讀取
                     if (!SetRandomValueToServer(Item))
@@ -52,7 +73,7 @@ namespace HarnessControl
                         }
                         else
                         {
-                            string CMD = HarnessCommand.GetMasterCommand("crdna", EnumProtocolType.IEC104);
+                            string CMD = HarnessCommand.GetMasterCommand("crdna", Item.FrontendProtocolType);
                             var DataVariable = SendHassionCmd($"{CMD} ioa {IOA}");
                             if (!CheckResponse(DataVariable))
                             {
@@ -81,7 +102,7 @@ namespace HarnessControl
                         continue;
                     }
                     atopLog.WriteLog(atopLogMode.TestInfo, "Polled_Control " + Item.MappingString);
-                    string Command = HarnessCommand.GetMasterCommand(Item.FrontendDataType, EnumProtocolType.IEC104);
+                    string Command = HarnessCommand.GetMasterCommand(Item.FrontendDataType, Item.FrontendProtocolType);
                     string Mode = GetMode(Command);
                     for (int Index = 0; Index < Item.FrontendCount; Index++)
                     {
@@ -101,7 +122,7 @@ namespace HarnessControl
 
         private Dictionary<string, string> GetMITValue(int IOA)
         {
-            string CMD = HarnessCommand.GetMasterCommand("mit", EnumProtocolType.IEC104);
+            string CMD = HarnessCommand.GetMasterCommand("mit", Session.Protocol);
             var Value = Session.SocketClient.Send($"{CMD} get ioa {IOA} value");
             Dictionary<string, string> DataVariable = new Dictionary<string, string>();
             DataVariable.Add("OBJ0,IOA", IOA.ToString());
@@ -375,10 +396,13 @@ namespace HarnessControl
             try
             {
                 int IOA = ToInt(DicDataVariable["OBJ0,IOA"]);
+
                 #region Check ASDU
-                //TODO Check ASDU
-                //string ASDU = DicDataVariable["ASDU"];
-                //if(ASDU != )
+                string DataASDU = DicDataVariable["ASDU"];
+                if (ASDU != DataASDU)
+                {
+                    throw new TestException($"IOA = {IOA} , ASDU ={DataASDU} , Expected = {ASDU}");
+                }
                 #endregion
 
                 #region Check QDS

@@ -16,18 +16,8 @@ namespace HarnessControl
         public List<ConfigMappingItem> MappingItemList = new List<ConfigMappingItem>();
 
         public atopPortocolBase Frontend { get; set; }
+        private List<HarnessProcess> ProcessList = new List<HarnessProcess>();
 
-        public string ConfigPath { get; set; }
-
-        public void ParsingConfigFormFile()
-        {
-            string ConfigData;
-            using (StreamReader sr = new StreamReader(ConfigPath))
-            {
-                ConfigData = sr.ReadToEnd();
-            }
-            ParsingConfig(ConfigData);
-        }
         public void ParsingConfig(string Config)
         {
             int DataType = 0;
@@ -84,26 +74,6 @@ namespace HarnessControl
         }
 
 
-        public void Setup()
-        {
-            foreach (var Session in SessionList)
-            {
-                HarnessProcess P = new HarnessProcess();
-                P.ProcessStart(@"C:\Program Files\Triangle MicroWorks\Protocol Test Harness\bin\tmwtest.exe",
-                               $"-tcl \"source {Application.StartupPath.Replace("\\", "/") + "/"}SocketServer.tcl\";\"CreateSocketServer {Session.HarnessSocketInfo.Port}\"");
-                Thread.Sleep(3000);
-                Session.SocketClientConnect();
-                Session.Setup();
-                if (Session.END == EnumEnd.Backend)
-                {
-                    Session.AddPoint();
-                }
-                else
-                {
-                }
-            }
-        }
-
         public void Setup(string SessionName)
         {
             var Session = SessionList.Where(a => a.Name == SessionName).FirstOrDefault();
@@ -113,7 +83,8 @@ namespace HarnessControl
             }
             HarnessProcess P = new HarnessProcess();
             P.ProcessStart(@"C:\Program Files\Triangle MicroWorks\Protocol Test Harness\bin\tmwtest.exe",
-                           $"-tcl \"source {Application.StartupPath.Replace("\\", "/") + "/"}SocketServer.tcl\";\"CreateSocketServer {Session.HarnessSocketInfo.Port}\"");
+                          $"-tcl \"source {Application.StartupPath.Replace("\\", "/") + "/"}SocketServer.tcl\";\"CreateSocketServer {Session.HarnessSocketInfo.Port}\"");
+            ProcessList.Add(P);
             Thread.Sleep(3000);
             Session.SocketClientConnect();
             Session.Setup();
@@ -130,7 +101,7 @@ namespace HarnessControl
                         Frontend = new Modbus();
                         break;
                     case EnumProtocolType.IEC104:
-                        Frontend = new IEC_104();
+                        Frontend = new IEC_10X();
                         break;
                 }
                 Frontend.Session = Session;
@@ -145,6 +116,15 @@ namespace HarnessControl
                     Frontend.SocketClientList.Add(SocketClient);
                 }
             }
+        }
+
+        public void Close()
+        {
+            Frontend.SocketClientList.ForEach(a => a.TelnetClinet.Close());
+            SessionList.ForEach(a => a.SocketClient.TelnetClinet.Close());
+            ProcessList.ForEach(a => a.Process.Close());
+            SessionList.Clear();
+            MappingItemList.Clear();
         }
     }
     public class HarnessInfo
