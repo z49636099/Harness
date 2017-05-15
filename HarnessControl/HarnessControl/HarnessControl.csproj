@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="atopLog.cs" />
     <Compile Include="atopLogMode.cs" />
+    <Compile Include="Global.cs" />
     <Compile Include="Protocol\IEC10X.cs" />
     <Compile Include="Protocol\61850.cs" />
     <Compile Include="Protocol\atopPortocolBase.cs" />

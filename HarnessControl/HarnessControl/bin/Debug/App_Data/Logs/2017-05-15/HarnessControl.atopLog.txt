@@ -8,3 +8,5 @@
 
 2017-05-15 11:30:32.7552 | INFO | HarnessControl.atopLog | Socket Server is ready : 10.0.176.200:8000 
 
+2017-05-15 18:52:07.5437 | INFO | HarnessControl.atopLog | Socket Server is ready : 10.0.176.200:8000 
+

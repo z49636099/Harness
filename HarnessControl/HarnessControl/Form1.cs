@@ -5,6 +5,8 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -27,7 +29,8 @@ namespace HarnessControl
         private AutomationControl.Form1 FormAutomation = new AutomationControl.Form1();
 
         private void Form1_Load(object sender, EventArgs e)
-        {            
+        {
+            Global.LocalIP = GetLocalIP();
             //Log Show Action
             atopLog.ShowMsg = new Action<string>((str) =>
             {
@@ -40,14 +43,13 @@ namespace HarnessControl
             try
             {
                 ControlServer.ReceiveEvent += ControlServer_ReceiveEvent;
-                Task.Factory.StartNew(new Action(() => { ControlServer.Start(8000); }));
+                Task.Factory.StartNew(new Action(() => { ControlServer.Start(Global.MainServerPort); }));
                 GetHarnessNetInfo();
             }
             catch (Exception ex)
             {
                 atopLog.WriteLog(atopLogMode.SystemError, ex.Message);
             }
-
         }
 
         private void NewMethod(string Msg)
@@ -154,6 +156,24 @@ namespace HarnessControl
         private void btnClientController_Click(object sender, EventArgs e)
         {
             FormAutomation.Show();
+        }
+
+        private string GetLocalIP()
+        {
+            return "192.168.4.82";
+            // 取得本機名稱
+            String strHostName = Dns.GetHostName();
+
+            // 取得本機的 IpHostEntry 類別實體
+            IPHostEntry iphostentry = Dns.GetHostEntry(strHostName);
+            foreach (var IP in iphostentry.AddressList)
+            {
+                if (IP.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    return IP.ToString();
+                }
+            }
+            throw new Exception("Get local ip fail.");
         }
     }
 }

@@ -8,7 +8,7 @@ namespace HarnessControl
 {
     public abstract class atopPortocolBase
     {
-        public HarnessSession Session { get; set; }
+        public virtual HarnessSession Session { get; set; }
 
         public event Action<string> StatusEvent;
 

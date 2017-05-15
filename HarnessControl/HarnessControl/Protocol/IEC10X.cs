@@ -13,23 +13,29 @@ namespace HarnessControl
         string[] PolledControlDataType = { "CSCNA", "CDCNA", "CRCNA", "CBONA", "CSENA", "CSENB", "CSENC" };
         private string ASDU { get; set; }
 
-        public IEC_10X()
+        public override HarnessSession Session
         {
-            switch (Session.Protocol)
+            get { return base.Session; }
+
+            set
             {
-                case EnumProtocolType.IEC101:
-                    if (Session.ConnectionType == EnumConnectionType.ETH)
-                    {
+                base.Session = value;
+                switch (Session.Protocol)
+                {
+                    case EnumProtocolType.IEC101:
+                        if (Session.ConnectionType == EnumConnectionType.ETH)
+                        {
+                            ASDU = Session.SettingInfo[5];
+                        }
+                        else if (Session.ConnectionType == EnumConnectionType.COM)
+                        {
+                            ASDU = Session.SettingInfo[9];
+                        }
+                        break;
+                    case EnumProtocolType.IEC104:
                         ASDU = Session.SettingInfo[5];
-                    }
-                    else if (Session.ConnectionType == EnumConnectionType.COM)
-                    {
-                        ASDU = Session.SettingInfo[9];
-                    }
-                    break;
-                case EnumProtocolType.IEC104:
-                    ASDU = Session.SettingInfo[5];
-                    break;
+                        break;
+                }
             }
         }
 
@@ -74,7 +80,7 @@ namespace HarnessControl
                         else
                         {
                             string CMD = HarnessCommand.GetMasterCommand("crdna", Item.FrontendProtocolType);
-                            var DataVariable = SendHassionCmd($"{CMD} ioa {IOA}");
+                            var DataVariable = SendHassionCmd($"{CMD} get ioa {IOA} value");
                             if (!CheckResponse(DataVariable))
                             {
                                 continue;
@@ -147,13 +153,18 @@ namespace HarnessControl
                     }
                     double FrontendValue = ToDouble(DataVariable[GetValuekey(Item.FrontendDataType)]);
                     int[] BackendValueArray = GetBackendData(Item);
-                    double BackendValue = ToBackendValue(Item, BackendValueArray);
+                    double BackendValue = ToBackendValue(Item, BackendValueArray, IOA);
                     if (FrontendValue != BackendValue)
                     {
                         if (Item.BackendCount == 1)
+                        {
                             throw new TestException($"Check Data Fail: IOA = {IOA} , Frontend value = {FrontendValue} , Backend value = {BackendValue}");
+                        }
                         else
-                            throw new TestException($"Check Data Fail: IOA = {IOA} , Frontend value = {FrontendValue} , Backend high value = {BackendValueArray[0]}, low value = {BackendValueArray[1]}");
+                        {
+                            int BackendIndex = (IOA - Item.FrontendStart) * 2 + Item.BackendStart;
+                            throw new TestException($"Check Data Fail: IOA = {IOA} , Frontend value = {FrontendValue} , Backend high value = {BackendValueArray[BackendIndex]}, low value = {BackendValueArray[BackendIndex + 1]}");
+                        }
                     }
                 }
 
@@ -182,7 +193,7 @@ namespace HarnessControl
                 case EnumProtocolType.IEC101:
                 case EnumProtocolType.IEC104:
                 case EnumProtocolType.Modbus:
-                    HarnessTCPClient Client = SocketClientList[Item.BackendIndex];
+                    HarnessTCPClient Client = SocketClientList[Item.BackendIndex - 1];
                     string BackendData = Client.Send($"Get {BackendCommand} {Item.BackendStart} {Item.BackendCount}");
                     var DicBackendData = GetPointValueList(BackendData);
                     for (int i = 0; i < Item.BackendCount; i++)
@@ -196,7 +207,9 @@ namespace HarnessControl
             return Value;
         }
 
-        private double ToBackendValue(ConfigMappingItem Item, int[] BackendValueArray)
+
+
+        private double ToBackendValue(ConfigMappingItem Item, int[] BackendValueArray, int IOA)
         {
             double CheckData = 0;
             switch (Item.BackendProtocolType)
@@ -207,20 +220,22 @@ namespace HarnessControl
                 case EnumProtocolType.Modbus:
                     if (Item.BackendCount == 1)
                     {
+                        int BackendIndex = IOA - Item.FrontendStart + Item.BackendStart;
                         switch (Item.FrontendDataType)
                         {
                             case "MST":
-                                CheckData = BackendValueArray[0] % 256;
+                                CheckData = BackendValueArray[BackendIndex] % 256;
                                 break;
                             default:
-                                CheckData = BackendValueArray[0];
+                                CheckData = BackendValueArray[BackendIndex];
                                 break;
                         }
                     }
                     else
                     {
-                        int HighValue = BackendValueArray[0];
-                        int LowValue = BackendValueArray[1];
+                        int BackendIndex = (IOA - Item.FrontendStart) * 2 + Item.BackendStart;
+                        int HighValue = BackendValueArray[BackendIndex];
+                        int LowValue = BackendValueArray[BackendIndex + 1];
 
                         switch (Item.FrontendDataType)
                         {
@@ -282,7 +297,7 @@ namespace HarnessControl
                 string HCmd = CommandArr[0];
 
 
-                if (DicDataVariable.ContainsKey("OBJ0,IOA"))
+                if (!DicDataVariable.ContainsKey("OBJ0,IOA"))
                 {
                     throw new TestException("No such data(OBJ0,IOA)");
                 }

@@ -42,9 +42,9 @@ namespace HarnessControl
                 case EnumProtocolType.Modbus:
                     return Cmd;
                 case EnumProtocolType.IEC101:
-                    return "m101" + DataType.ToLower();
+                    return "m101" + Cmd;
                 case EnumProtocolType.IEC104:
-                    return "m104" + DataType.ToLower();
+                    return "m104" + Cmd;
                 default:
                     throw new Exception("Get Server Command Fail.");
             }
@@ -62,7 +62,21 @@ namespace HarnessControl
                 case "WHRe": return "mmbwritehreg";
                 case "AO": return "mdnpanlgcmd";
                 case "BO": return "mdnpbincmd";
-
+                case "MSP": return "msp";
+                case "MDP": return "mdp";
+                case "MST": return "mst";
+                case "MIT": return "mit";
+                case "MBS": return "mbs";
+                case "MVN": return "mvn";
+                case "MVS": return "mvs";
+                case "MVF": return "mvf";
+                case "CSCNA": return "cscna";
+                case "CDCNA": return "cdcna";
+                case "CRCNA": return "crcna";
+                case "CBONA": return "cbona";
+                case "CSENA": return "csena";
+                case "CSENB": return "csenb";
+                case "CSENC": return "csenc";
                 default:
                     throw new Exception("No such DataType : " + DataType);
             }

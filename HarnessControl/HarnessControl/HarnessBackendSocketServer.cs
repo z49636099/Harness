@@ -18,7 +18,7 @@ namespace HarnessControl
 
         public void Start(int Port)
         {
-            Listener = new TcpListener(IPAddress.Parse(GetLocalIP()), Port);
+            Listener = new TcpListener(IPAddress.Parse(Global.LocalIP), Port);
             atopLog.WriteLog(atopLogMode.SocketInfo, "Socket Server is ready : " +Listener.LocalEndpoint);
             TcpClient clientSocket = new TcpClient();
             try
@@ -47,23 +47,7 @@ namespace HarnessControl
             Listener.Stop();
             atopLog.WriteLog(atopLogMode.SocketInfo, "Socket Server is stop :" + Listener.LocalEndpoint);
         }
-
-        private string GetLocalIP()
-        {
-            // 取得本機名稱
-            String strHostName = Dns.GetHostName();
-
-            // 取得本機的 IpHostEntry 類別實體
-            IPHostEntry iphostentry = Dns.GetHostEntry(strHostName);
-            foreach (var IP in iphostentry.AddressList)
-            {
-                if (IP.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    return IP.ToString();
-                }
-            }
-            throw new Exception("Get local ip fail.");
-        }
+        
     }
 
 }
