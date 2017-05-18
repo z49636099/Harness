@@ -77,6 +77,7 @@ namespace HarnessControl
                 case "CSENA": return "csena";
                 case "CSENB": return "csenb";
                 case "CSENC": return "csenc";
+                case "crdna":return "crdna";
                 default:
                     throw new Exception("No such DataType : " + DataType);
             }

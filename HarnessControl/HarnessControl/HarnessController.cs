@@ -82,7 +82,7 @@ namespace HarnessControl
                 throw new Exception("No find " + SessionName);
             }
             HarnessProcess P = new HarnessProcess();
-            P.ProcessStart(@"C:\Program Files\Triangle MicroWorks\Protocol Test Harness\bin\tmwtest.exe",
+            P.ProcessStart(@"C:\Program Files (x86)\Triangle MicroWorks\Protocol Test Harness\bin\tmwtest.exe",
                           $"-tcl \"source {Application.StartupPath.Replace("\\", "/") + "/"}SocketServer.tcl\";\"CreateSocketServer {Session.HarnessSocketInfo.Port}\"");
             ProcessList.Add(P);
             Thread.Sleep(3000);

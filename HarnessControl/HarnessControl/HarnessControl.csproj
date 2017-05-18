@@ -67,7 +67,6 @@
     <Compile Include="atopLog.cs" />
     <Compile Include="atopLogMode.cs" />
     <Compile Include="Global.cs" />
-    <Compile Include="Protocol\IEC10X.cs" />
     <Compile Include="Protocol\61850.cs" />
     <Compile Include="Protocol\atopPortocolBase.cs" />
     <Compile Include="ConfigMappingItem.cs" />
@@ -75,6 +74,7 @@
     <Compile Include="HarnessFrontendSocketAccept.cs" />
     <Compile Include="HarnessFrontendSocketServer.cs" />
     <Compile Include="Protocol\DNP3.cs" />
+    <Compile Include="Protocol\IEC_10X.cs" />
     <Compile Include="Protocol\Modbus.cs" />
     <Compile Include="Enum\EnumConnectionType.cs" />
     <Compile Include="Enum\EnumEnd.cs" />
@@ -96,6 +96,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HarnessBackendSocketServer.cs" />
+    <Compile Include="Protocol\PointValue.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

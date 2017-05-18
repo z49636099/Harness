@@ -1,2 +1,0 @@
-2017-04-13 17:19:35.7944 | ERROR | HarnessControl.atopLog | Test 
-

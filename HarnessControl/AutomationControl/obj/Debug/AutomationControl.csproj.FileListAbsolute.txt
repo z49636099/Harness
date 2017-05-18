@@ -5,4 +5,11 @@ C:\Users\Acer\Documents\GitHub\Harness\HarnessControl\AutomationControl\obj\Debu
 C:\Users\Acer\Documents\GitHub\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.csproj.GenerateResource.Cache
 C:\Users\Acer\Documents\GitHub\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.exe
 C:\Users\Acer\Documents\GitHub\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.pdb
-C:\Users\Acer\Documents\GitHub\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.csprojResolveAssemblyReference.cache
+C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\bin\Debug\AutomationControl.exe
+C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\bin\Debug\AutomationControl.pdb
+C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.csprojResolveAssemblyReference.cache
+C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.Form1.resources
+C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.Properties.Resources.resources
+C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.csproj.GenerateResource.Cache
+C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.exe
+C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.pdb

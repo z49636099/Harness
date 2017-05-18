@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 
 namespace HarnessControl
@@ -51,7 +49,7 @@ namespace HarnessControl
         public override void PollChange()
         {
             int Loop_Count = 0;
-            DateTime EndTime = DateTime.Now.AddSeconds(10);
+            DateTime EndTime = DateTime.Now.AddHours(4);
             while (DateTime.Now < EndTime)
             {
                 foreach (var Item in Session.MappingItemList)
@@ -68,7 +66,7 @@ namespace HarnessControl
                     {
                         continue;
                     }
-                    Thread.Sleep(10000);
+                    Thread.Sleep(30000);
                     for (int Index = 0; Index < Item.FrontendCount; Index++)
                     {
                         int IOA = Index + Item.FrontendStart;
@@ -80,7 +78,7 @@ namespace HarnessControl
                         else
                         {
                             string CMD = HarnessCommand.GetMasterCommand("crdna", Item.FrontendProtocolType);
-                            var DataVariable = SendHassionCmd($"{CMD} get ioa {IOA} value");
+                            var DataVariable = SendHassionCmd($"{CMD} ioa {IOA} ");
                             if (!CheckResponse(DataVariable))
                             {
                                 continue;
@@ -98,7 +96,7 @@ namespace HarnessControl
         public override void PollControl()
         {
             int Loop_Count = 0;
-            DateTime EndTime = DateTime.Now.AddSeconds(10);
+            DateTime EndTime = DateTime.Now.AddHours(4);
             while (DateTime.Now < EndTime)
             {
                 foreach (ConfigMappingItem Item in Session.MappingItemList)
@@ -117,6 +115,7 @@ namespace HarnessControl
                         var DataVariable = SendHassionCmd($"{Command} ioa {IOA} value {Value} mode {Mode}");
                         if (!CheckResponse(DataVariable))
                             continue;
+                        Thread.Sleep(2000);
                         DataCompare(DataVariable);
                     }
 
@@ -138,32 +137,32 @@ namespace HarnessControl
 
         private void DataCompare(Dictionary<string, string> DataVariable)
         {
+            if (!DataVariable.ContainsKey("OBJ0,IOA"))
+            {
+                throw new TestException("no such OBJ0,IOA");
+            }
+            int IOA = ToInt(DataVariable["OBJ0,IOA"]);
             try
             {
-                if (!DataVariable.ContainsKey("OBJ0,IOA"))
-                {
-                    throw new TestException("no such OBJ0,IOA");
-                }
-                int IOA = ToInt(DataVariable["OBJ0,IOA"]);
+
                 foreach (var Item in Session.MappingItemList)
                 {
-                    if (IOA < Item.FrontendStart || IOA > Item.FrontendStart + Item.FrontendCount)
+                    if (IOA < Item.FrontendStart || IOA > Item.FrontendStart + Item.FrontendCount - 1)
                     {
                         continue;
                     }
-                    double FrontendValue = ToDouble(DataVariable[GetValuekey(Item.FrontendDataType)]);
-                    int[] BackendValueArray = GetBackendData(Item);
-                    double BackendValue = ToBackendValue(Item, BackendValueArray, IOA);
+                    PointValue FrontendValue = ToDouble(DataVariable[GetValuekey(Item.FrontendDataType)]);
+                    int[] BackendValueArray = GetBackendData(Item, IOA);
+                    PointValue BackendValue = ToBackendValue(Item, BackendValueArray);
                     if (FrontendValue != BackendValue)
                     {
-                        if (Item.BackendCount == 1)
+                        if (Item.BackendCount == Item.FrontendCount)
                         {
                             throw new TestException($"Check Data Fail: IOA = {IOA} , Frontend value = {FrontendValue} , Backend value = {BackendValue}");
                         }
                         else
                         {
-                            int BackendIndex = (IOA - Item.FrontendStart) * 2 + Item.BackendStart;
-                            throw new TestException($"Check Data Fail: IOA = {IOA} , Frontend value = {FrontendValue} , Backend high value = {BackendValueArray[BackendIndex]}, low value = {BackendValueArray[BackendIndex + 1]}");
+                            throw new TestException($"Check Data Fail: IOA = {IOA} , Frontend value = {FrontendValue} , Backend high value = {BackendValueArray[0]}, low value = {BackendValueArray[1]}");
                         }
                     }
                 }
@@ -171,34 +170,46 @@ namespace HarnessControl
             }
             catch (HarnessSocketException ex)
             {
-                atopLog.WriteLog(atopLogMode.SocketInfo, ex.Message);
+                atopLog.WriteLog(atopLogMode.SocketInfo, $"Data Compare error : IOA = {IOA} ,{ ex.Message}");
             }
             catch (TestException ex)
             {
-                atopLog.WriteLog(atopLogMode.TestFail, ex.Message);
+                atopLog.WriteLog(atopLogMode.TestFail, $"Data Compare error : IOA = {IOA} ,{ ex.Message}");
             }
             catch (Exception ex)
             {
-                atopLog.WriteLog(atopLogMode.SystemError, ex.Message);
+                atopLog.WriteLog(atopLogMode.SystemError, $"Data Compare error : IOA = {IOA} ,{ ex.Message}");
             }
         }
 
-        public int[] GetBackendData(ConfigMappingItem Item)
+        public int[] GetBackendData(ConfigMappingItem Item, int IOA)
         {
             string BackendCommand = HarnessCommand.GetSlaveCommand(Item.BackendDataType, Item.BackendProtocolType);
-            int[] Value = new int[Item.BackendCount];
+            int[] Value = new int[0];
             switch (Item.BackendProtocolType)
             {
                 case EnumProtocolType.DNP3:
                 case EnumProtocolType.IEC101:
                 case EnumProtocolType.IEC104:
                 case EnumProtocolType.Modbus:
-                    HarnessTCPClient Client = SocketClientList[Item.BackendIndex - 1];
-                    string BackendData = Client.Send($"Get {BackendCommand} {Item.BackendStart} {Item.BackendCount}");
-                    var DicBackendData = GetPointValueList(BackendData);
-                    for (int i = 0; i < Item.BackendCount; i++)
+                    int BackendIndex = 0, BackendCount = 0;
+                    if (Item.BackendCount == Item.FrontendCount)
                     {
-                        Value[i] = DicBackendData[i + Item.BackendStart];
+                        BackendIndex = IOA - Item.FrontendStart + Item.BackendStart;
+                        BackendCount = 1;
+                    }
+                    else
+                    {
+                        BackendIndex = (IOA - Item.FrontendStart) * 2 + Item.BackendStart;
+                        BackendCount = 2;
+                    }
+                    Value = new int[BackendCount];
+                    HarnessTCPClient Client = SocketClientList[Item.BackendIndex - 1];
+                    string BackendData = Client.Send($"Get {BackendCommand} {BackendIndex} {BackendCount}");
+                    var DicBackendData = GetPointValueList(BackendData);
+                    for (int i = 0; i < BackendCount; i++)
+                    {
+                        Value[i] = DicBackendData[BackendIndex + i];
                     }
                     break;
                 case EnumProtocolType.IEC61850:
@@ -209,33 +220,31 @@ namespace HarnessControl
 
 
 
-        private double ToBackendValue(ConfigMappingItem Item, int[] BackendValueArray, int IOA)
+        private PointValue ToBackendValue(ConfigMappingItem Item, int[] BackendValueArray)
         {
-            double CheckData = 0;
+            PointValue CheckData = 0;
             switch (Item.BackendProtocolType)
             {
                 case EnumProtocolType.DNP3:
                 case EnumProtocolType.IEC101:
                 case EnumProtocolType.IEC104:
                 case EnumProtocolType.Modbus:
-                    if (Item.BackendCount == 1)
+                    if (Item.BackendCount == Item.FrontendCount)
                     {
-                        int BackendIndex = IOA - Item.FrontendStart + Item.BackendStart;
                         switch (Item.FrontendDataType)
                         {
                             case "MST":
-                                CheckData = BackendValueArray[BackendIndex] % 256;
+                                CheckData = BackendValueArray[0] % 256;
                                 break;
                             default:
-                                CheckData = BackendValueArray[BackendIndex];
+                                CheckData = BackendValueArray[0];
                                 break;
                         }
                     }
                     else
                     {
-                        int BackendIndex = (IOA - Item.FrontendStart) * 2 + Item.BackendStart;
-                        int HighValue = BackendValueArray[BackendIndex];
-                        int LowValue = BackendValueArray[BackendIndex + 1];
+                        int HighValue = BackendValueArray[0];
+                        int LowValue = BackendValueArray[1];
 
                         switch (Item.FrontendDataType)
                         {
@@ -259,7 +268,7 @@ namespace HarnessControl
             return CheckData;
         }
 
-        private double IEEE754(int value)
+        private PointValue IEEE754(int value)
         {
             string Bin = Convert.ToString(value, 2).PadLeft(32, '0');
             int S = Convert.ToInt32(Bin.Substring(0, 1));
@@ -271,9 +280,9 @@ namespace HarnessControl
                 M += Math.Pow(2, -1 * i) * Convert.ToInt32(Bin[BinIndex].ToString());
             }
             if (E == 0 && M == 0) { return 0; }
-            if (E == 255 && M != 0) { throw new TestException("IEEE754 Fail : 1.#QNAN , value = " + value); }
-            if (E == 255 && M == 0 && S == 0) { throw new TestException("IEEE754 Fail : 1.#INF , value = " + value); }
-            if (E == 255 && M == 0 && S == 1) { throw new TestException("IEEE754 Fail : -1.#INF , value = " + value); }
+            if (E == 255 && M != 0) { return "1.#QNAN"; }
+            if (E == 255 && M == 0 && S == 0) { return "1.#INF"; }
+            if (E == 255 && M == 0 && S == 1) { return "-1.#INF"; }
             int Sing = S * 2 + 1;
             int Index = E - 126;
             double Mantissa = M;
@@ -390,18 +399,15 @@ namespace HarnessControl
             }
             catch (HarnessSocketException ex)
             {
-                atopLog.WriteLog(atopLogMode.SocketInfo, ex.Message);
-                return null;
+                atopLog.WriteLog(atopLogMode.SocketInfo, $"Send Harness error : Command = {Command} ,{ ex.Message}");
             }
             catch (TestException ex)
             {
-                atopLog.WriteLog(atopLogMode.TestFail, ex.Message);
-                return null;
+                atopLog.WriteLog(atopLogMode.TestFail, $"Send Harness error : Command = {Command} ,{ ex.Message}");
             }
             catch (Exception ex)
             {
-                atopLog.WriteLog(atopLogMode.SystemError, ex.Message);
-                return null;
+                atopLog.WriteLog(atopLogMode.SystemError, $"Send Harness error : Command = {Command} ,{ ex.Message}");
             }
             return DicDataVariable;
         }
@@ -520,14 +526,22 @@ namespace HarnessControl
             return "execute";
         }
 
-        private double ToDouble(string Num)
+        private PointValue ToDouble(string Num)
         {
-            double D = 0;
-            if (double.TryParse(Num, out D))
+            try
             {
-                return D;
+                double D = 0;
+                if (double.TryParse(Num, out D))
+                {
+                    return D;
+                }
+                return base.ToInt(Num);
             }
-            return base.ToInt(Num);
+            catch
+            {
+                return Num;
+            }
         }
     }
+
 }

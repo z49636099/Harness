@@ -68,6 +68,7 @@ namespace HarnessControl
                 {
                     case "Config":
                         Controller.ParsingConfig(obj);
+                        atopLog.WriteLog(atopLogMode.TestInfo, obj);
                         ControlServer.Client.Send("Config is received");
                         break;
                     case "Setup":
