@@ -14,7 +14,7 @@ namespace HarnessControl
         public ConfigSocketAccept Client { get; set; }
 
         public event Action<string, string> ReceiveEvent;
-        public HarnessTCPClient HarnessSocket { get; set; }
+        public SocketClient HarnessSocket { get; set; }
 
         public void Start(int Port)
         {

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace HarnessControl
 {
-    public class Modbus : atopPortocolBase
+    public class Modbus : atopProtocolHarness
     {
         private string[] PolledChaangeDataType = { "Coil", "Disc", "IReg", "HReg" };
         private string[] PolledControlDataType = { "WCoi", "WDis", "WIRe", "WHRe" };
@@ -16,22 +16,29 @@ namespace HarnessControl
             throw new NotImplementedException();
         }
 
+        public Modbus(CommunicationBase FC) : base(FC)
+        {
+
+        }
+
         public override void PollChange()
         {
             int Loop_Count = 0;
             DateTime EndTime = DateTime.Now.AddSeconds(10);
             while (DateTime.Now < EndTime)
             {
-                foreach (ConfigMappingItem Item in Session.MappingItemList)
+                foreach (ConfigMappingItem Item in FrontendCommunication.MappingItemList)
                 {
                     if (Array.IndexOf(PolledChaangeDataType, Item.FrontendDataType) < 0)
                     {
                         continue;
                     }
                     atopLog.WriteLog(atopLogMode.TestInfo, "Polled_Change " + Item.MappingString);
-                    string Command = HarnessCommand.GetMasterCommand(Item.FrontendDataType, EnumProtocolType.Modbus);
+                    string Command = HarnessControl.Command_Harness.GetMasterCommand(Item.FrontendDataType, EnumProtocolType.Modbus);
+                    int SlaveID = Item.BackendSlaveID;
 
-                    //單次讀取
+                    #region 單次讀取
+
                     if (!SetRandomValueToServer(Item))
                     {
                         continue;
@@ -52,26 +59,39 @@ namespace HarnessControl
                     for (int Index = 0; Index < Item.FrontendCount; Index++)
                     {
                         int PointAddress = Item.FrontendStart + Index;
-                        DataVariable = SendHassionCmd($"{Command} start {PointAddress} quantity {Quantity}");
+                        DataVariable = SendHassionCmd($"{Command} start {PointAddress} quantity {Quantity}", SlaveID);
                         if (DataVariable == null) { continue; }
-                        DataCompare(DataVariable, Index);
+                        DataCompare(DataVariable, PointAddress, Item);
                         if (Quantity == 2) { Index++; }
                     }
 
-                    //批量讀取
+                    #endregion
+
+                    #region 批量讀取
                     if (!SetRandomValueToServer(Item))
                     {
                         continue;
                     }
                     Thread.Sleep(5000);
-                    DataVariable = SendHassionCmd($"{Command} start {Item.FrontendStart} quantity {Item.FrontendCount}");
+                    DataVariable = SendHassionCmd($"{Command} start {Item.FrontendStart} quantity {Item.FrontendCount}", SlaveID);
                     if (DataVariable == null) { continue; }
-                    DataCompare(DataVariable, Item.FrontendStart);
+                    DataCompare(DataVariable, Item.FrontendStart, Item);
+                    #endregion
                 }
                 Loop_Count++;
                 atopLog.WriteLog(atopLogMode.TestInfo, "PollChange Loop:" + Loop_Count);
             }
         }
+
+        //private string GetSlaveName(ConfigMappingItem Item)
+        //{
+        //    var Communication = BackendCommunication.Where(a => a.Index == Item.BackendIndex).First();
+        //    var Session = Communication as Communication_Harness;
+        //    if (Session == null)
+        //        return "";
+        //    else
+        //        return Session.SlaveName;
+        //}
 
         public override void PollControl()
         {
@@ -79,20 +99,21 @@ namespace HarnessControl
             DateTime EndTime = DateTime.Now.AddSeconds(10);
             while (DateTime.Now < EndTime)
             {
-                foreach (var Item in Session.MappingItemList)
+                foreach (var Item in FrontendCommunication.MappingItemList)
                 {
                     if (Array.IndexOf(PolledControlDataType, Item.FrontendDataType) < 0)
                     {
                         continue;
                     }
+                    int SlaveName = Item.BackendSlaveID;
                     atopLog.WriteLog(atopLogMode.TestInfo, "Polled_Control " + Item.MappingString);
-                    string Command = HarnessCommand.GetMasterCommand(Item.FrontendDataType, EnumProtocolType.Modbus);
+                    string Command = HarnessControl.Command_Harness.GetMasterCommand(Item.FrontendDataType, EnumProtocolType.Modbus);
                     int[] RandomValue = PointValueRange.GetRandomValue(Item.BackendDataType, Item.BackendCount);
                     for (int Index = 0; Index < Item.FrontendCount; Index++)
                     {
                         int PointIndex = Index + Item.FrontendStart;
                         int PointValue = RandomValue[Index];
-                        SendHassionCmd($"{Command} start {PointIndex} value {PointValue}");
+                        SendHassionCmd($"{Command} start {PointIndex} value {PointValue}", SlaveName);
                     }
                     Thread.Sleep(2000);
                     DataCompare_Control(RandomValue, Item);
@@ -121,14 +142,14 @@ namespace HarnessControl
                     {
                         DicPointValue.Add(item.FrontendStart + Index, randomValue[Index]);
                     }
-                    CheckData(DicPointValue, item.FrontendDataType);
+                    CheckData(DicPointValue, item);
                     break;
                 case EnumProtocolType.IEC61850:
                     break;
             }
         }
 
-        public void DataCompare(Dictionary<string, string> DicDataVariable, int StartPoint)
+        public void DataCompare(Dictionary<string, string> DicDataVariable, int StartPoint, ConfigMappingItem Item)
         {
             //Dictionary<string, string> DicDataVariable = GetDataVariableDic(DataVariable);
             Dictionary<int, int> DicPointValue = new Dictionary<int, int>();
@@ -151,62 +172,62 @@ namespace HarnessControl
                     DicPointValue.Add(Key + StartPoint, ToInt(Variable.Value));
                 }
             }
-            CheckData(DicPointValue, DataType);
+            CheckData(DicPointValue, Item);
         }
 
-        private void CheckData(Dictionary<int, int> DicPointValue, string DataType)
+        private void CheckData(Dictionary<int, int> DicPointValue, ConfigMappingItem Item)
         {
             int VariableMaxPoint = DicPointValue.Select(a => a.Key).Max();
             int VariableMinPoint = DicPointValue.Select(a => a.Key).Min();
-            string ClientCommand = HarnessCommand.GetMasterCommand(DataType, EnumProtocolType.Modbus);
-            foreach (var Item in Session.MappingItemList)
+            string ClientCommand = Command_Harness.GetMasterCommand(Item.FrontendDataType, EnumProtocolType.Modbus);
+            //foreach (var Item in Session.MappingItemList)
+            //{
+            int tmpMaxPoint = -1;
+            int tmpMinPoint = -1;
+            int ItemStart = Item.FrontendStart;
+            int ItemEnd = Item.FrontendStart + Item.FrontendCount - 1;
+            //if (Item.FrontendDataType != DataType)
+            //{
+            //    continue;
+            //}
+            if (VariableMinPoint <= ItemStart && VariableMaxPoint >= ItemStart)
             {
-                int tmpMaxPoint = -1;
-                int tmpMinPoint = -1;
-                int ItemStart = Item.FrontendStart;
-                int ItemEnd = Item.FrontendStart + Item.FrontendCount - 1;
-                if (Item.FrontendDataType != DataType)
-                {
-                    continue;
-                }
-                if (VariableMinPoint <= ItemStart && VariableMaxPoint >= ItemStart)
-                {
-                    tmpMinPoint = ItemStart;
-                    tmpMaxPoint = VariableMaxPoint > ItemEnd ? ItemEnd : VariableMaxPoint;
-                }
-                else if (VariableMaxPoint <= ItemEnd && VariableMaxPoint >= ItemEnd)
-                {
-                    tmpMaxPoint = ItemEnd;
-                    tmpMinPoint = VariableMinPoint > ItemStart ? VariableMinPoint : ItemStart;
-                }
-                else if (VariableMinPoint > ItemStart && VariableMaxPoint < ItemEnd)
-                {
-                    tmpMinPoint = VariableMinPoint;
-                    tmpMaxPoint = VariableMaxPoint;
-                }
-                else { continue; }
-                switch (Item.BackendProtocolType)
-                {
-                    case EnumProtocolType.DNP3:
-                    case EnumProtocolType.IEC101:
-                    case EnumProtocolType.IEC104:
-                    case EnumProtocolType.Modbus:
-                        Dictionary<int, int> DicBackendVariable = GetBackendData(Item, tmpMaxPoint, tmpMinPoint);
-                        if (DicBackendVariable == null) { continue; }
-                        DataCompare1(DicPointValue, DicBackendVariable, Item);
-                        break;
-                    case EnumProtocolType.IEC61850:
-                        break;
-                }
+                tmpMinPoint = ItemStart;
+                tmpMaxPoint = VariableMaxPoint > ItemEnd ? ItemEnd : VariableMaxPoint;
             }
+            else if (VariableMaxPoint <= ItemEnd && VariableMaxPoint >= ItemEnd)
+            {
+                tmpMaxPoint = ItemEnd;
+                tmpMinPoint = VariableMinPoint > ItemStart ? VariableMinPoint : ItemStart;
+            }
+            else if (VariableMinPoint > ItemStart && VariableMaxPoint < ItemEnd)
+            {
+                tmpMinPoint = VariableMinPoint;
+                tmpMaxPoint = VariableMaxPoint;
+            }
+            //else { continue; }
+            switch (Item.BackendProtocolType)
+            {
+                case EnumProtocolType.DNP3:
+                case EnumProtocolType.IEC101:
+                case EnumProtocolType.IEC104:
+                case EnumProtocolType.Modbus:
+                    Dictionary<int, int> DicBackendVariable = GetBackendData(Item, tmpMinPoint, tmpMaxPoint);
+                    if (DicBackendVariable == null) { return; }
+                    DataCompare1(DicPointValue, DicBackendVariable, Item);
+                    break;
+                case EnumProtocolType.IEC61850:
+                    break;
+            }
+            //}
         }
 
         /// <summary>DNP3 Modbus 101 104</summary>
         private void DataCompare1(Dictionary<int, int> DicFrontVariable, Dictionary<int, int> DicBackendVariable, ConfigMappingItem Item)
         {
             int QuantityType = DicFrontVariable.Count - DicBackendVariable.Count;
-
-            for (int i = DicFrontVariable.Keys.Min(); i <= DicFrontVariable.Keys.Max(); i++)
+            int MaxIndex = DicFrontVariable.Keys.Max();
+            for (int i = DicFrontVariable.Keys.Min(); i <= MaxIndex; i++)
             {
                 if (DicFrontVariable.Count == 0)
                     return;
@@ -255,9 +276,9 @@ namespace HarnessControl
 
         private Dictionary<int, int> GetBackendData(ConfigMappingItem Item, int FrontendStartPoint, int FrontendEndPoint)
         {
-            HarnessTCPClient Client = SocketClientList[Item.BackendIndex - 1];
+            SocketClient Client = SocketClientList[Item.BackendIndex - 1];
             Dictionary<int, int> DicBackendVariable = new Dictionary<int, int>();
-            string ServerCommand = HarnessCommand.GetSlaveCommand(Item.FrontendDataType, Item.BackendProtocolType);
+            string ServerCommand = Command_Harness.GetSlaveCommand(Item.FrontendDataType, Item.BackendProtocolType);
             int QuantityType = Item.FrontendCount - Item.BackendCount;
             int BackendStart = -1;
             int BackendCount = -1;
@@ -278,9 +299,15 @@ namespace HarnessControl
                 BackendStart = Item.BackendStart + ((FrontendStartPoint - Item.FrontendStart) / 2);
                 BackendCount = (FrontendEndPoint - FrontendStartPoint + 1) / 2;
             }
-            string Data = Client.Send(string.Format("Get {0} {1} {2}", ServerCommand, BackendStart, BackendCount));
+            string Data = Client.Send(string.Format("Get {0} {1} {2} {3}", ServerCommand, BackendStart, BackendCount,Item.BackendSlaveID));
             DicBackendVariable = GetPointValueList(Data);
             return DicBackendVariable;
+        }
+
+        public Dictionary<string, string> SendHassionCmd(string Command, int SlaveName)
+        {
+            FrontendSession.SocketClient.Send("mmbmodifysession address " + SlaveName);
+            return SendHassionCmd(Command);
         }
 
         public override Dictionary<string, string> SendHassionCmd(string Command)
@@ -345,7 +372,7 @@ namespace HarnessControl
 
 
 
-        public override void CheckStatVariable(HarnessTCPClient Client, string Response, string Command)
+        public override void CheckStatVariable(SocketClient Client, string Response, string Command)
         {
             if (Command.Contains("statVariable"))
             {
@@ -365,23 +392,6 @@ namespace HarnessControl
                 }
             }
         }
-
-
-
-
-        //public string GetClientCMD(string DataType)
-        //{
-        //    switch (DataType)
-        //    {
-        //        case "WCoi": return "mmbwritecoil";
-        //        case "WHRe": return "mmbwritehreg";
-        //        case "Coil": return "mmbreadcoils";
-        //        case "Disc": return "mmbreaddinputs";
-        //        case "IReg": return "mmbreadiregs";
-        //        case "HReg": return "mmbreadhregs";
-        //        default: throw new Exception("No such DataType :" + DataType);
-        //    }
-        //}
 
         public int GetFunctionCode(string Cmd)
         {

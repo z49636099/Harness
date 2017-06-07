@@ -13,3 +13,10 @@ C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\obj\Debug\Automat
 C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.csproj.GenerateResource.Cache
 C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.exe
 C:\Users\acer\Desktop\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.pdb
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\AutomationControl\bin\Debug\AutomationControl.exe
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\AutomationControl\bin\Debug\AutomationControl.pdb
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.Form1.resources
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.Properties.Resources.resources
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.csproj.GenerateResource.Cache
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.exe
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\AutomationControl\obj\Debug\AutomationControl.pdb

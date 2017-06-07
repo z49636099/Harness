@@ -8,11 +8,18 @@ namespace HarnessControl
 {
     public abstract class atopPortocolBase
     {
-        public virtual HarnessSession Session { get; set; }
+        public atopPortocolBase(CommunicationBase FC)
+        {
+            FrontendCommunication = FC;
+        }
+
+        public virtual CommunicationBase FrontendCommunication { get; set; }
 
         public event Action<string> StatusEvent;
 
-        public List<HarnessTCPClient> SocketClientList = new List<HarnessTCPClient>();
+        public List<SocketClient> SocketClientList = new List<SocketClient>();
+
+        public List<CommunicationBase> BackendCommunication = new List<CommunicationBase>();
 
         public void Reliability()
         {
@@ -73,20 +80,42 @@ namespace HarnessControl
 
         public bool SetRandomValueToServer(ConfigMappingItem Item)
         {
+            switch (Item.BackendProtocolType)
+            {
+                case EnumProtocolType.DNP3:
+                case EnumProtocolType.IEC101:
+                case EnumProtocolType.IEC104:
+                case EnumProtocolType.Modbus:
+                    return SetRandomValueToServer_Harness(Item);
+                case EnumProtocolType.IEC61850:
+                    return SetRandomValueToServer_61850(Item);
+                default:
+                    throw new TestException("SetRandomValueToServer Fail.");
+            }
+        }
+
+        public bool SetRandomValueToServer_61850(ConfigMappingItem Item)
+        {
+            //TODO 一頭霧水中...
+            throw new Exception("還沒寫");
+        }
+
+        public bool SetRandomValueToServer_Harness(ConfigMappingItem Item)
+        {
             try
             {
-                HarnessTCPClient Client = SocketClientList[Item.BackendIndex - 1];
+                SocketClient Client = SocketClientList[Item.BackendIndex - 1];
                 int[] SetValue = PointValueRange.GetRandomValue(Item.BackendDataType, Item.BackendCount);
                 string SetValueStr = string.Join(",", SetValue);
-                string Cmd = HarnessCommand.GetSlaveCommand(Item.BackendDataType, Item.BackendProtocolType);
-                Client.Send(string.Format("Set {0} {1} {2} {3}", Cmd, Item.BackendStart, Item.BackendCount, SetValueStr), 5000);
+                string Cmd = Command_Harness.GetSlaveCommand(Item.BackendDataType, Item.BackendProtocolType);
+                Client.Send(string.Format("Set {0} {1} {2} {3} {4}", Cmd, Item.BackendStart, Item.BackendCount, SetValueStr,Item.BackendSlaveID), 5000);
 
                 int TryCount = 15;
                 while (TryCount-- > 0)
                 {
                     bool IsUpdateFinish = true;
                     Thread.Sleep(100);
-                    string Data = Client.Send(string.Format("Get {0} {1} {2}", Cmd, Item.BackendStart, Item.BackendCount));
+                    string Data = Client.Send(string.Format("Get {0} {1} {2} {3}", Cmd, Item.BackendStart, Item.BackendCount,Item.BackendSlaveID));
                     Dictionary<int, int> Dic = GetPointValueList(Data);
                     for (int i = 0; i < SetValue.Length; i++)
                     {
@@ -113,91 +142,6 @@ namespace HarnessControl
             atopLog.WriteLog(atopLogMode.TestFail, "Set Random Value Fail.");
             return false;
         }
-
-        public virtual void CheckStatVariable(HarnessTCPClient Client, string Response, string Command)
-        {
-            if (Command.Contains("statVariable"))
-            {
-                while (true)
-                {
-                    Thread.Sleep(1000);
-                    string Stat = Client.Send("get $::stat").Replace("\r\n", "").Trim();
-                    switch (Stat)
-                    {
-                        case "-1":
-                            throw new TestException("vwait stat is timeout; command = " + Command);
-                        case "0":
-                            return;
-                        case "1":
-                            break;
-                        default:
-                            throw new TestException($"cmd error : status = {Stat} , {Command}");
-                    }
-                }
-            }
-        }
-        public virtual Dictionary<string, string> SendHassionCmd(string Command)
-        {
-            var Client = Session.SocketClient;
-            string[] CommandArr = Command.Split(' ');
-            string HCmd = CommandArr[0];
-            string Help = Client.Send(HCmd + " ?");
-            if (Help.Contains("feedback") && !Command.Contains("feedback"))
-            {
-                Command += " feedback false";
-            }
-            if (Help.Contains("statVariable") && !Command.Contains("statVariable"))
-            {
-                Command += " statVariable stat";
-            }
-            if (Help.Contains("dataVariable") && !Command.Contains("dataVariable"))
-            {
-                Command += " dataVariable data";
-            }
-            string Response = Client.Send(Command);
-            CheckStatVariable(Client, Response, Command);
-            string DataVariable = Response;
-            if (Command.Contains("dataVariable"))
-            {
-                DataVariable = Client.Send("get [array get ::data]").Trim();
-            }
-
-            var DicDataVariable = GetDataVariableDic(DataVariable);
-            if (DicDataVariable.ContainsKey("PARSINGSTATUS"))
-            {
-                if (DicDataVariable["PARSINGSTATUS"] != "Success")
-                {
-                    throw new TestException($"Parsing Status Fail , Status = {DicDataVariable["PARSINGSTATUS"]} ,Expected : Success");
-                }
-            }
-
-            return DicDataVariable;
-        }
-
-        public Dictionary<string, string> GetCommandPara(string Command)
-        {
-            Dictionary<string, string> DicPara = new Dictionary<string, string>();
-            string CMD = string.Join(" ", Command.Split(' ').Skip(1));
-            string[] SplitMark = CMD.Split(new char[] { '"' }, StringSplitOptions.RemoveEmptyEntries);
-            List<string> CmdPara = new List<string>();
-            for (int i = 0; i < SplitMark.Length; i++)
-            {
-                if (i % 2 == 0)
-                {
-                    CmdPara.AddRange(SplitMark[i].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-                }
-                else
-                {
-                    CmdPara.Add(SplitMark[i]);
-                }
-            }
-            for (int i = 0; i < CmdPara.Count; i += 2)
-            {
-                DicPara.Add(CmdPara[i], CmdPara[i + 1]);
-            }
-            return DicPara;
-        }
-
     }
 
     public class TestException : Exception

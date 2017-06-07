@@ -36,11 +36,13 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.btnConnect = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.btnBackend02 = new System.Windows.Forms.Button();
+            this.btnBackend03 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnChange
             // 
-            this.btnChange.Location = new System.Drawing.Point(31, 202);
+            this.btnChange.Location = new System.Drawing.Point(31, 263);
             this.btnChange.Name = "btnChange";
             this.btnChange.Size = new System.Drawing.Size(75, 25);
             this.btnChange.TabIndex = 5;
@@ -50,7 +52,7 @@
             // 
             // btnControl
             // 
-            this.btnControl.Location = new System.Drawing.Point(31, 170);
+            this.btnControl.Location = new System.Drawing.Point(31, 231);
             this.btnControl.Name = "btnControl";
             this.btnControl.Size = new System.Drawing.Size(75, 25);
             this.btnControl.TabIndex = 6;
@@ -60,7 +62,7 @@
             // 
             // btnFrontend
             // 
-            this.btnFrontend.Location = new System.Drawing.Point(31, 139);
+            this.btnFrontend.Location = new System.Drawing.Point(31, 200);
             this.btnFrontend.Name = "btnFrontend";
             this.btnFrontend.Size = new System.Drawing.Size(75, 25);
             this.btnFrontend.TabIndex = 7;
@@ -74,7 +76,7 @@
             this.btnBackend.Name = "btnBackend";
             this.btnBackend.Size = new System.Drawing.Size(75, 25);
             this.btnBackend.TabIndex = 4;
-            this.btnBackend.Text = "Backend";
+            this.btnBackend.Text = "Backend01";
             this.btnBackend.UseVisualStyleBackColor = true;
             this.btnBackend.Click += new System.EventHandler(this.btnBackend_Click);
             // 
@@ -109,7 +111,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(31, 233);
+            this.button1.Location = new System.Drawing.Point(31, 294);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 25);
             this.button1.TabIndex = 5;
@@ -117,11 +119,33 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // btnBackend02
+            // 
+            this.btnBackend02.Location = new System.Drawing.Point(31, 138);
+            this.btnBackend02.Name = "btnBackend02";
+            this.btnBackend02.Size = new System.Drawing.Size(75, 25);
+            this.btnBackend02.TabIndex = 10;
+            this.btnBackend02.Text = "Backend02";
+            this.btnBackend02.UseVisualStyleBackColor = true;
+            this.btnBackend02.Click += new System.EventHandler(this.btnBackend02_Click);
+            // 
+            // btnBackend03
+            // 
+            this.btnBackend03.Location = new System.Drawing.Point(31, 169);
+            this.btnBackend03.Name = "btnBackend03";
+            this.btnBackend03.Size = new System.Drawing.Size(75, 25);
+            this.btnBackend03.TabIndex = 11;
+            this.btnBackend03.Text = "Backend03";
+            this.btnBackend03.UseVisualStyleBackColor = true;
+            this.btnBackend03.Click += new System.EventHandler(this.btnBackend03_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(843, 598);
+            this.Controls.Add(this.btnBackend03);
+            this.Controls.Add(this.btnBackend02);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
@@ -149,6 +173,8 @@
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnBackend02;
+        private System.Windows.Forms.Button btnBackend03;
     }
 }
 

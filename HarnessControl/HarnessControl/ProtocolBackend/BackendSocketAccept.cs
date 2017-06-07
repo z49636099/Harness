@@ -4,14 +4,14 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace HarnessControl
 {
-    public class HarnessFrontendSocketAccept
+    public abstract class BackendSocketAccept
     {
         public TcpClient clientSocket;
         string clNo;
+        public SocketClient HarnessSocket { get; set; }
         public void startClient(TcpClient inClientSocket, string clineNo)
         {
             this.clientSocket = inClientSocket;
@@ -35,9 +35,9 @@ namespace HarnessControl
                     {
                         Send("\0", false);
                     }
+                    string serverResponse = Echo(dataFromClient);
 
-
-                    //Send();
+                    Send(serverResponse);
                 }
             }
             catch (Exception ex)
@@ -58,7 +58,7 @@ namespace HarnessControl
             networkStream.Write(sendBytes, 0, sendBytes.Length);
             networkStream.Flush();
         }
-        
+
         public void Close()
         {
             try
@@ -68,5 +68,6 @@ namespace HarnessControl
             }
             catch { }
         }
+        protected abstract string Echo(string Data);
     }
 }

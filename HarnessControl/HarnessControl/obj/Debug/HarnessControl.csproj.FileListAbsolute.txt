@@ -41,3 +41,17 @@ C:\Users\acer\Desktop\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessCon
 C:\Users\acer\Desktop\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.Form1.resources
 C:\Users\acer\Desktop\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.Properties.Resources.resources
 C:\Users\acer\Desktop\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.csproj.GenerateResource.Cache
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\bin\Debug\HarnessControl.exe.config
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.exe
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.pdb
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\bin\Debug\NLog.config
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\bin\Debug\HarnessControl.exe
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\bin\Debug\HarnessControl.pdb
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\bin\Debug\AutomationControl.exe
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\bin\Debug\NLog.dll
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\bin\Debug\AutomationControl.pdb
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\bin\Debug\NLog.xml
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.csprojResolveAssemblyReference.cache
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.Form1.resources
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.Properties.Resources.resources
+C:\Users\acer\Desktop\KenTest\Harness\HarnessControl\HarnessControl\obj\Debug\HarnessControl.csproj.GenerateResource.Cache

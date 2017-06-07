@@ -20,5 +20,9 @@ namespace HarnessControl
         TestSuccess,
         
         TestInfo,
+
+        XelasCommandInfo,
+
+        XelasCommandError
     }
 }

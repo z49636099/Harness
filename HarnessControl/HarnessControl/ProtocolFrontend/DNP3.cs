@@ -7,17 +7,17 @@ using System.Threading;
 
 namespace HarnessControl
 {
-    public class DNP3 : atopPortocolBase
+    public class DNP3 : atopProtocolHarness
     {
-        public HarnessTCPClient FrontendClient { get; set; }
+        public SocketClient FrontendClient { get; set; }
 
         public List<PointVarInfo> PolledChangeVar = new List<PointVarInfo>();
         public List<PointVarInfo> PolledStaticVar = new List<PointVarInfo>();
         public List<PointVarInfo> PolledControlVar = new List<PointVarInfo>();
 
-        public DNP3()
+        public DNP3(CommunicationBase FC) : base(FC)
         {
-            FrontendClient = Session.SocketClient;
+            FrontendClient = FrontendSession.SocketClient;
             PolledChangeVar.Add(new PointVarInfo { Type = "BI", Num = 2, Var = new int[] { 0, 1, 2, 3 } });
             PolledChangeVar.Add(new PointVarInfo { Type = "DI", Num = 5, Var = new int[] { 0, 1, 2, 3 } });
             PolledChangeVar.Add(new PointVarInfo { Type = "CT", Num = 22, Var = new int[] { 0, 1, 2, 5, 6 } });
@@ -50,7 +50,7 @@ namespace HarnessControl
                 atopLog.WriteLog(atopLogMode.TestInfo, "Start Run Polled Change operation ...");
                 FrontendClient.Send("mdnpevent statVariable stat");
                 FrontendClient.Send("vwait ::stat");
-                foreach (ConfigMappingItem Item in Session.MappingItemList)
+                foreach (ConfigMappingItem Item in FrontendCommunication.MappingItemList)
                 {
                     PointVarInfo EventVar = PolledChangeVar.Where(a => a.Type == Item.FrontendDataType).FirstOrDefault();
                     if (EventVar == null)

@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 
 namespace HarnessControl
 {
-    public class HarnessProcess
+    public class ProcessController
     {
+        #region Harness
         //將視窗移動到最上層
         [DllImport("USER32.DLL")] //引用User32.dll
         public static extern bool SetForgroundWindow(IntPtr hWnd);
@@ -33,11 +34,11 @@ namespace HarnessControl
         const int WM_KEYUP = 0x0101;
         const int WM_SYSCOMMAND = 0x0112;
         const int SC_CLOSE = 0x10;
-        public Process Process { get; set; }
+        public Process HarnessProcess { get; set; }
 
-        public void ProcessStart(string ProgramName, string Parameter)
+        public void HarnessProcessStart(string ProgramName, string Parameter)
         {
-            Process = Process.Start(ProgramName, Parameter);
+            HarnessProcess = Process.Start(ProgramName, Parameter);
             CloseHarnessDialog();
         }
 
@@ -53,10 +54,8 @@ namespace HarnessControl
                 {
                     case 0:
                         player = FindWindow("#32770", "Demo will Expire");
-                        //atopLog.WriteLog(atopLogMode.ProcessInfo, "Find windows : Demo will Expire");
                         if (player != IntPtr.Zero)
                         {
-                            //atopLog.WriteLog(atopLogMode.ProcessInfo, "Find windows : Demo will Expire success");
                             SendMessage(player, SC_CLOSE, 0, 0);
                             Action = 1;
                         }
@@ -69,10 +68,8 @@ namespace HarnessControl
                         break;
                     case 1:
                         player = FindWindow("#32770", "Open Workspace");
-                        //atopLog.WriteLog(atopLogMode.ProcessInfo, "Find windows : Open Workspace");
                         if (player != IntPtr.Zero)
                         {
-                            //atopLog.WriteLog(atopLogMode.ProcessInfo, "Find windows : Open Workspace success");
                             SendMessage(player, SC_CLOSE, 0, 0);
                             Action = -1;
                         }
@@ -86,8 +83,29 @@ namespace HarnessControl
                 }
             }
         }
+        #endregion
 
+        #region 61850
+        
+        public static string SendCommand_61850(string Command, string Shell_Command)
+        {
+            Process Carried_Out = new Process();
+            ProcessStartInfo Carried_Out_Info = new System.Diagnostics.ProcessStartInfo(@"C:\cygwin64\bin\bash.exe");
+            Carried_Out_Info.Arguments = Command;
+            string Carried_Folder = Command_61850.GetCommandFolder(Shell_Command);
+            Carried_Out_Info.WorkingDirectory = @"C:\cygwin64\opt\xelas\iec61850\client\" + Carried_Folder;
+            Carried_Out_Info.RedirectStandardOutput = true;
+            Carried_Out_Info.RedirectStandardError = true;
+            Carried_Out_Info.UseShellExecute = false;
+            Carried_Out.StartInfo = Carried_Out_Info;
+            //執行程式
+            Carried_Out.Start();
+            string OutputData = Carried_Out.StandardOutput.ReadToEnd();
+            //Console.WriteLine(OutputData);
+            Carried_Out.WaitForExit();
+            return OutputData;
+        }
 
-
+        #endregion 
     }
 }

@@ -74,11 +74,11 @@ namespace HarnessControl
                 // string[] lineArray = Data.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
                 ConfigData += Data;
-                if (ConfigData.StartsWith("Setting\r\n"))
+                if (ConfigData.StartsWith("<?xml"))
                 {
-                    if (ConfigData.ToUpper().Contains("\r\nEND\r\n"))
+                    if (ConfigData.Contains("\r\n</root>"))
                     {
-                        ConfigData = ConfigData.Remove(ConfigData.Length - 7);
+                        ConfigData = ConfigData;//.Remove(ConfigData.Length - 7);
                         TriggerEvent("Config", ConfigData);
                         //ReceiveEvent?.BeginInvoke("Config", ConfigData, new AsyncCallback((target) =>
                         // {
@@ -94,6 +94,10 @@ namespace HarnessControl
                 else if (ConfigData.StartsWith("Test"))
                 {
                     TriggerEvent("Test", ConfigData.Replace("Test ", "").Replace("\r\n", ""));
+                }
+                else if (ConfigData.StartsWith("LogFolder"))
+                {
+                    TriggerEvent("LogFolder", ConfigData.Replace("LogFolder ", "").Replace("\r\n", ""));
                 }
                 else
                 {

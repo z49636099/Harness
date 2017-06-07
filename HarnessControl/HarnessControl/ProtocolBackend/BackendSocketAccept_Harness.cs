@@ -8,70 +8,20 @@ using System.Threading.Tasks;
 
 namespace HarnessControl
 {
-    public class HarnessBackendSocketAccept
+    public class BackendSocketAccept_Harness : BackendSocketAccept
     {
-        public TcpClient clientSocket;
-        string clNo;
-        public HarnessTCPClient HarnessSocket { get; set; }
-        public void startClient(TcpClient inClientSocket, string clineNo)
-        {
-            this.clientSocket = inClientSocket;
-            this.clNo = clineNo;
-            Thread ctThread = new Thread(doChat);
-            ctThread.Start();
-        }
-        private void doChat()
-        {
-
-            NetworkStream networkStream = clientSocket.GetStream();
-            try
-            {
-                while (clientSocket.Connected)
-                {
-                    byte[] bytesFrom = new byte[clientSocket.ReceiveBufferSize];
-                    networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
-                    string dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom).Replace("\0", "");
-
-                    if (dataFromClient.Trim() == "")
-                    {
-                        Send("\0", false);
-                    }
-                    string serverResponse = Echo(dataFromClient);
-
-                    Send(serverResponse);
-                }
-            }
-            catch (Exception ex)
-            {
-                atopLog.WriteLog(atopLogMode.SocketInfo, clientSocket.Client.LocalEndPoint + " Control accept : " + ex.Message);
-            }
-            Close();
-        }
-
-        private void Send(string Data, bool NewLine = true)
-        {
-            if (NewLine && !Data.EndsWith("\r\n"))
-            {
-                Data += "\r\n";
-            }
-            NetworkStream networkStream = clientSocket.GetStream();
-            byte[] sendBytes = Encoding.ASCII.GetBytes(Data);
-            networkStream.Write(sendBytes, 0, sendBytes.Length);
-            networkStream.Flush();
-        }
-
-        public string Echo(string line)
+        protected override string Echo(string line)
         {
             try
             {
-                string[] Data = line.Split(' ');
+                string[] Data = line.Replace("\r\n", "").Split(' ');
                 EnumProtocolType Type = GetProtocolType(Data[1]);
                 switch (Data[0])
                 {
                     case "Get":
-                        return GetData(Type, Data[1], Data[2], Data[3]);
+                        return GetData(Type, Data[1], Data[2], Data[3], Data[4]);
                     case "Set":
-                        return SetData(Type, Data[1], Data[2], Data[3], Data[4]);
+                        return SetData(Type, Data[1], Data[2], Data[3], Data[4], Data[5]);
                     case "Add":
                         return AddPoint(Type, Data);
                     case "Delete":
@@ -93,34 +43,37 @@ namespace HarnessControl
             int StartPoint = 0;
             string Cmd = Para[1];
             string CmdFormat = "";
+            string SlaveID = "";
             if (Type == EnumProtocolType.DNP3)
             {
                 Quantity = int.Parse(Para[2]);
+                SlaveID = Para[3];
             }
             else
             {
                 StartPoint = int.Parse(Para[2]);
                 Quantity = int.Parse(Para[3]);
+                SlaveID = Para[4];
             }
 
             switch (Type)
             {
                 case EnumProtocolType.DNP3:
-                    CmdFormat = "{0} remove session 0";
+                    CmdFormat = "{0} remove session {2}";
                     break;
                 case EnumProtocolType.Modbus:
-                    CmdFormat = "{0} remove point {1}";
+                    CmdFormat = "{0} remove point {1} session {2}";
                     break;
                 case EnumProtocolType.IEC101:
                 case EnumProtocolType.IEC104:
-                    CmdFormat = "{0} remove ioa {1}";
+                    CmdFormat = "{0} remove ioa {1} sector {2}";
                     break;
             }
             int EndPoint = StartPoint + Quantity - 1;
             for (int i = StartPoint; i <= EndPoint; i++)
             {
                 int DataIndex = i - StartPoint;
-                string SocketCmd = string.Format(CmdFormat, Cmd, i);
+                string SocketCmd = string.Format(CmdFormat, Cmd, i, SlaveID);
                 string PointData = HarnessSocket.Send(SocketCmd).Replace("\r\n", "");
             }
             return "0";
@@ -133,43 +86,46 @@ namespace HarnessControl
             int StartPoint = 0;
             string Cmd = Para[1];
             string CmdFormat = "";
+            string SlaveID = "";
             string[] Value;
             if (Type == EnumProtocolType.DNP3)
             {
                 Quantity = int.Parse(Para[2]);
                 Value = SplitValue(Para[3], Quantity);
+                SlaveID = Para[4];
             }
             else
             {
                 StartPoint = int.Parse(Para[2]);
                 Quantity = int.Parse(Para[3]);
                 Value = SplitValue(Para[4], Quantity);
+                SlaveID = Para[5];
             }
 
             switch (Type)
             {
                 case EnumProtocolType.DNP3:
-                    CmdFormat = "{0} add value {2}";
+                    CmdFormat = "{0} add value {2} session {3}";
                     break;
                 case EnumProtocolType.Modbus:
-                    CmdFormat = "{0} add point {1} value {2}";
+                    CmdFormat = "{0} add point {1} value {2} session {3}";
                     break;
                 case EnumProtocolType.IEC101:
                 case EnumProtocolType.IEC104:
-                    CmdFormat = "{0} add ioa {1} value {2}";
+                    CmdFormat = "{0} add ioa {1} value {2} sector {3}";
                     break;
             }
             int EndPoint = StartPoint + Quantity - 1;
             for (int i = StartPoint; i <= EndPoint; i++)
             {
                 int DataIndex = i - StartPoint;
-                string SocketCmd = string.Format(CmdFormat, Cmd, i, Value[DataIndex]);
+                string SocketCmd = string.Format(CmdFormat, Cmd, i, Value[DataIndex], SlaveID);
                 string PointData = HarnessSocket.Send(SocketCmd).Replace("\r\n", "");
             }
             return "0";
         }
 
-        private string SetData(EnumProtocolType Type, string Cmd, string point, string Quantity, string Data)
+        private string SetData(EnumProtocolType Type, string Cmd, string point, string Quantity, string Data, string SlaveID)
         {
             int StartPoint = int.Parse(point);
             int Count = int.Parse(Quantity);
@@ -180,23 +136,23 @@ namespace HarnessControl
             {
                 case EnumProtocolType.DNP3:
                 case EnumProtocolType.Modbus:
-                    CmdFormat = "{0} set point {1} value {2}";
+                    CmdFormat = "{0} set point {1} value {2} session {3}";
                     break;
                 case EnumProtocolType.IEC101:
                 case EnumProtocolType.IEC104:
-                    CmdFormat = "{0} get ioa {1} value {2}";
+                    CmdFormat = "{0} set ioa {1} value {2} sector {3}";
                     break;
             }
             for (int i = StartPoint; i <= EndPoint; i++)
             {
                 int DataIndex = i - StartPoint;
-                string SocketCmd = string.Format(CmdFormat, Cmd, i, DataArray[DataIndex]);
-                string PointData = HarnessSocket.Send(SocketCmd,-1).Replace("\r\n", "");
+                string SocketCmd = string.Format(CmdFormat, Cmd, i, DataArray[DataIndex], SlaveID);
+                string PointData = HarnessSocket.Send(SocketCmd, -1).Replace("\r\n", "");
             }
             return "0";
         }
 
-        private string GetData(EnumProtocolType Type, string Cmd, string point, string Quantity)
+        private string GetData(EnumProtocolType Type, string Cmd, string point, string Quantity, string SlaveID)
         {
             int StartPoint = int.Parse(point);
             int EndPoint = StartPoint + int.Parse(Quantity) - 1;
@@ -206,16 +162,16 @@ namespace HarnessControl
             {
                 case EnumProtocolType.DNP3:
                 case EnumProtocolType.Modbus:
-                    CmdFormat = "{0} get point {1} value";
+                    CmdFormat = "{0} get session {1} point {2} value";
                     break;
                 case EnumProtocolType.IEC101:
                 case EnumProtocolType.IEC104:
-                    CmdFormat = "{0} get ioa {1} value";
+                    CmdFormat = "{0} get sector {1} ioa {2} value";
                     break;
             }
             for (int i = StartPoint; i <= EndPoint; i++)
             {
-                string SocketCmd = string.Format(CmdFormat, Cmd, i);
+                string SocketCmd = string.Format(CmdFormat, Cmd, SlaveID, i);
                 string PointData = HarnessSocket.Send(SocketCmd).Replace("\r\n", "");
                 Data += i.ToString() + " " + PointData + " ";
             }
@@ -256,15 +212,5 @@ namespace HarnessControl
             throw new Exception("No support cmd : " + Cmd);
         }
 
-
-        public void Close()
-        {
-            try
-            {
-                atopLog.WriteLog(atopLogMode.SocketInfo, "Server accept is disconnect:" + clientSocket.Client.LocalEndPoint);
-                clientSocket.Close();
-            }
-            catch { }
-        }
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace HarnessControl
 {
-    public class HarnessTCPClient
+    public class SocketClient
     {
         private bool? WaitResult = null;
         public string ReceiveData { get; set; }

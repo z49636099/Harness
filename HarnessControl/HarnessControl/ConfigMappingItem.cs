@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace HarnessControl
 {
@@ -43,10 +44,66 @@ namespace HarnessControl
                     BackendCount = int.Parse(ItemArray[7]);
                     break;
             }
-
-            Port = int.Parse(ItemArray[8]);
         }
-        //name servername tagname 
+
+        public ConfigMappingItem(XmlNode node)
+        {
+            foreach (XmlNode EndNode in node.ChildNodes)
+            {
+                string End = EndNode.Name;
+                switch (End)
+                {
+                    case "Frontend":
+                        foreach(XmlAttribute Att in EndNode.Attributes)
+                        {
+                            string AttName = Att.Name;
+                            switch (AttName)
+                            {
+                                case "Number":
+                                    FrontendIndex = int.Parse(Att.Value);
+                                    break;
+                                case "DataType":
+                                    FrontendDataType = Att.Value;
+                                    break;
+                                case "StartAddress":
+                                    FrontendStart = int.Parse(Att.Value);
+                                    break;
+                                case "Quantity":
+                                    FrontendCount = int.Parse(Att.Value);
+                                    break;
+                                case "SLAVEID":
+                                    FrontendSlaveID = int.Parse(Att.Value);
+                                    break;
+                            }
+                        }
+                        break;
+                    case "Backend":
+                        foreach (XmlAttribute Att in EndNode.Attributes)
+                        {
+                            string AttName = Att.Name;
+                            switch (AttName)
+                            {
+                                case "Number":
+                                    BackendIndex = int.Parse(Att.Value);
+                                    break;
+                                case "DataType":
+                                    BackendDataType = Att.Value;
+                                    break;
+                                case "StartAddress":
+                                    BackendStart = int.Parse(Att.Value);
+                                    break;
+                                case "Quantity":
+                                    BackendCount = int.Parse(Att.Value);
+                                    break;
+                                case "SLAVEID":
+                                    BackendSlaveID = int.Parse(Att.Value);
+                                    break;
+                            }
+                        }
+                        break;
+                }
+            }
+        }
 
 
         public string MappingString { get; private set; }
@@ -62,6 +119,9 @@ namespace HarnessControl
                 FrontendIndex = int.Parse(M.Groups[1].Value);
             }
         }
+
+        public int FrontendSlaveID { get; set; }
+        public int BackendSlaveID { get; set; }
 
         private string _BackendName { get; set; }
         public string BackendName

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HarnessControl
 {
-    public static class HarnessCommand
+    public static class Command_Harness
     {
         /// <summary>Backend</summary>
         /// <param name="DataType"></param>
@@ -77,7 +77,7 @@ namespace HarnessControl
                 case "CSENA": return "csena";
                 case "CSENB": return "csenb";
                 case "CSENC": return "csenc";
-                case "crdna":return "crdna";
+                case "crdna": return "crdna";
                 default:
                     throw new Exception("No such DataType : " + DataType);
             }
@@ -118,5 +118,6 @@ namespace HarnessControl
                     throw new Exception("No such DataType : " + DataType);
             }
         }
+
     }
 }

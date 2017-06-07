@@ -43,7 +43,6 @@ namespace AutomationControl
             {
                 Client.Send(sr.ReadToEnd());
             }
-            Client.Send("END");
         }
 
         private void btnBackend_Click(object sender, EventArgs e)
@@ -75,7 +74,17 @@ namespace AutomationControl
         private void button1_Click(object sender, EventArgs e)
         {
             Client.Send("Test RELIABILITY");
-            
+
+        }
+
+        private void btnBackend02_Click(object sender, EventArgs e)
+        {
+            Client.Send("Setup Backend02");
+        }
+
+        private void btnBackend03_Click(object sender, EventArgs e)
+        {
+            Client.Send("Setup Backend03");
         }
     }
 }

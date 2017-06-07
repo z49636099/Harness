@@ -5,9 +5,10 @@ using System.Text;
 
 namespace HarnessControl
 {
-    public enum EnumConnectionType
+    public enum EnumCOMM_Type
     {
         COM,
-        ETH
+        ETH,
+        VCOM,
     }
 }

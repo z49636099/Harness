@@ -16,7 +16,7 @@ namespace HarnessControl
         public static int[] GetRandomValue(string DataType, int Count)
         {
             int[] IntArray = new int[Count];
-            for(int i=0;i<Count;i++)
+            for (int i = 0; i < Count; i++)
             {
                 IntArray[i] = GetRandomValue(DataType);
             }
@@ -56,6 +56,14 @@ namespace HarnessControl
                 case "MVN": return 32767;
                 case "MVS": return 32767;
                 case "MVF": return 32767;
+                case "DP": return 3;
+                case "SP": return 2;
+                case "FT": return 65535;
+                case "Integer 8": return 127;
+                case "Integer 32": return 65535;
+                case "Unsigned 8": return 255;
+                case "Unsigned 16": return 65535;
+                case "Unsigned 32": return 65535;
                 default:
                     throw new Exception("Error DataType:" + DataType);
             }

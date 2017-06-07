@@ -22,11 +22,12 @@ namespace HarnessControl
             InitializeComponent();
         }
 
-        HarnessTCPClient client = new HarnessTCPClient();
-        HarnessController Controller = new HarnessController();
+        SocketClient client = new SocketClient();
+        ProtocolController Controller = new ProtocolController();
 
         ConfigSocketServer ControlServer = new ConfigSocketServer();
         private AutomationControl.Form1 FormAutomation = new AutomationControl.Form1();
+        private string LogFolder { get; set; }
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -67,7 +68,7 @@ namespace HarnessControl
                 switch (Status)
                 {
                     case "Config":
-                        Controller.ParsingConfig(obj);
+                        Controller.ParsingConfigXml(obj);
                         atopLog.WriteLog(atopLogMode.TestInfo, obj);
                         ControlServer.Client.Send("Config is received");
                         break;
@@ -79,6 +80,11 @@ namespace HarnessControl
                         ControlServer.Client.Send(obj + " is Start");
                         StartTest(obj);
                         ControlServer.Client.Send("Test is finally");
+                        CopyLogFolder();
+                        break;
+                    case "LogFolder":
+                        LogFolder = obj;
+                        CopyLogFolder();
                         break;
                 }
             }
@@ -110,6 +116,22 @@ namespace HarnessControl
             }
         }
 
+        private void CopyLogFolder()
+        {
+            try
+            {
+                if (LogFolder == null)
+                    return;
+                if (!Directory.Exists(LogFolder))
+                    return;
+                DirectoryCopy(Application.StartupPath + "/App_Data/Logs", LogFolder, true);
+            }
+            catch (Exception ex)
+            {
+                atopLog.WriteLog(atopLogMode.SystemError, "Copy Folder fail: " + ex.Message);
+            }
+        }
+
         private void GetHarnessNetInfo()
         {
             using (StreamReader sr = new StreamReader(Application.StartupPath + " /SettingInfo.txt"))
@@ -119,7 +141,7 @@ namespace HarnessControl
                 {
                     line = line.ToLower();
                     string[] lineArray = line.Split(',');
-                    HarnessInfo Info = new HarnessInfo();
+                    PCNetworkInfo Info = new PCNetworkInfo();
                     if (line.StartsWith("backend"))
                         Info.Type = EnumEnd.Backend;
                     else if (line.StartsWith("frontend"))
@@ -175,6 +197,44 @@ namespace HarnessControl
                 }
             }
             throw new Exception("Get local ip fail.");
+        }
+
+        private static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
+        {
+            // Get the subdirectories for the specified directory.
+            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException(
+                    "Source directory does not exist or could not be found: "
+                    + sourceDirName);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            // If the destination directory doesn't exist, create it.
+            if (!Directory.Exists(destDirName))
+            {
+                Directory.CreateDirectory(destDirName);
+            }
+
+            // Get the files in the directory and copy them to the new location.
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                string temppath = Path.Combine(destDirName, file.Name);
+                file.CopyTo(temppath, true);
+            }
+
+            // If copying subdirectories, copy them and their contents to new location.
+            if (copySubDirs)
+            {
+                foreach (DirectoryInfo subdir in dirs)
+                {
+                    string temppath = Path.Combine(destDirName, subdir.Name);
+                    DirectoryCopy(subdir.FullName, temppath, copySubDirs);
+                }
+            }
         }
     }
 }

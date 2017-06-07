@@ -1,0 +1,57 @@
+2017-06-06 17:33:14.5553 | ERROR | HarnessControl.atopLog | Input string was not in a correct format. 
+
+2017-06-06 17:33:48.1972 | ERROR | HarnessControl.atopLog | Input string was not in a correct format. 
+
+2017-06-06 17:35:50.3142 | ERROR | HarnessControl.atopLog | No find Backend01 
+
+2017-06-06 17:40:00.3715 | ERROR | HarnessControl.atopLog | Connect Fail! 
+
+2017-06-06 17:41:18.6450 | ERROR | HarnessControl.atopLog | Add point fail : [Harness Exception]  Session id=1 not found
+ try ? for help
+Issued command...
+smbcoil add value 0 session 1   
+
+2017-06-06 17:42:44.0689 | ERROR | HarnessControl.atopLog | Add point fail : [Harness Exception]  Session id=1 not found
+ try ? for help
+Issued command...
+smbcoil add value 0 session 1   
+
+2017-06-06 17:46:50.4250 | ERROR | HarnessControl.atopLog | [Harness Exception]  none is not a valid enum value for stopBits
+ try ? for help
+Issued command...
+smbopenchannel name sMB_Backend1 port COM1 baud 115200 dataBits 8 parity none stopBits none type rtu   
+
+2017-06-06 17:50:04.5091 | ERROR | HarnessControl.atopLog | Add point fail : [Harness Exception]  Point 0 already exists 
+ 
+
+2017-06-06 17:57:55.7560 | ERROR | HarnessControl.atopLog | Add point fail : [Harness Exception]  Point 1 already exists 
+ 
+
+2017-06-06 18:00:48.8909 | ERROR | HarnessControl.atopLog | Object reference not set to an instance of an object. 
+
+2017-06-06 18:01:20.5858 | ERROR | HarnessControl.atopLog | Object reference not set to an instance of an object. 
+
+2017-06-06 18:06:50.5426 | ERROR | HarnessControl.atopLog | Object reference not set to an instance of an object. 
+
+2017-06-06 18:07:18.5722 | ERROR | HarnessControl.atopLog | Object reference not set to an instance of an object. 
+
+2017-06-06 18:07:59.4126 | ERROR | HarnessControl.atopLog | Object reference not set to an instance of an object. 
+
+2017-06-06 18:26:01.1614 | ERROR | HarnessControl.atopLog | [Harness Exception]  [Harness Exception]  invalid command name "point" 
+ 
+
+2017-06-06 18:27:28.6784 | ERROR | HarnessControl.atopLog | [Harness Exception]  [Harness Exception]  invalid command name "point" 
+ 
+
+2017-06-06 18:27:38.4070 | ERROR | HarnessControl.atopLog | [Harness Exception]  [Harness Exception]  invalid command name "point" 
+ 
+
+2017-06-06 18:28:57.0085 | ERROR | HarnessControl.atopLog | [Harness Exception]  [Harness Exception]  invalid command name "point" 
+ Either point number or point index must be specified 
+ 
+
+2017-06-06 18:34:41.9302 | ERROR | HarnessControl.atopLog | [Harness Exception]  Channel name must be unique and contain at least one non-numeric character 
+ 
+
+2017-06-06 18:35:13.2610 | ERROR | HarnessControl.atopLog | Connect Fail! 
+

@@ -4,36 +4,25 @@ using System.Threading;
 
 namespace HarnessControl
 {
-    public class IEC_10X : atopPortocolBase
+    public class IEC_10X : atopProtocolHarness
     {
 
+        public IEC_10X(CommunicationBase FC) : base(FC)
+        {
+
+        }
         string[] PolledChangeDataType = { "MSP", "MDP", "MST", "MBS", "MVN", "MVS", "MVF" };
         string[] PolledControlDataType = { "CSCNA", "CDCNA", "CRCNA", "CBONA", "CSENA", "CSENB", "CSENC" };
-        private string ASDU { get; set; }
+        private int ASDU { get; set; }
 
-        public override HarnessSession Session
+        public override CommunicationBase FrontendCommunication
         {
-            get { return base.Session; }
+            get { return base.FrontendCommunication; }
 
             set
             {
-                base.Session = value;
-                switch (Session.Protocol)
-                {
-                    case EnumProtocolType.IEC101:
-                        if (Session.ConnectionType == EnumConnectionType.ETH)
-                        {
-                            ASDU = Session.SettingInfo[5];
-                        }
-                        else if (Session.ConnectionType == EnumConnectionType.COM)
-                        {
-                            ASDU = Session.SettingInfo[9];
-                        }
-                        break;
-                    case EnumProtocolType.IEC104:
-                        ASDU = Session.SettingInfo[5];
-                        break;
-                }
+                base.FrontendCommunication = value;
+                ASDU = (FrontendCommunication as Communication_Harness).SlaveNames[0];
             }
         }
 
@@ -52,14 +41,14 @@ namespace HarnessControl
             DateTime EndTime = DateTime.Now.AddHours(4);
             while (DateTime.Now < EndTime)
             {
-                foreach (var Item in Session.MappingItemList)
+                foreach (var Item in FrontendCommunication.MappingItemList)
                 {
                     if (Array.IndexOf(PolledChangeDataType, Item.FrontendDataType) < 0)
                     {
                         continue;
                     }
                     atopLog.WriteLog(atopLogMode.TestInfo, "Polled_Change " + Item.MappingString);
-                    string Command = HarnessCommand.GetMasterCommand(Item.FrontendDataType, Item.FrontendProtocolType);
+                    string Command = HarnessControl.Command_Harness.GetMasterCommand(Item.FrontendDataType, Item.FrontendProtocolType);
 
                     //單次讀取
                     if (!SetRandomValueToServer(Item))
@@ -77,7 +66,7 @@ namespace HarnessControl
                         }
                         else
                         {
-                            string CMD = HarnessCommand.GetMasterCommand("crdna", Item.FrontendProtocolType);
+                            string CMD = HarnessControl.Command_Harness.GetMasterCommand("crdna", Item.FrontendProtocolType);
                             var DataVariable = SendHassionCmd($"{CMD} ioa {IOA} ");
                             if (!CheckResponse(DataVariable))
                             {
@@ -99,14 +88,14 @@ namespace HarnessControl
             DateTime EndTime = DateTime.Now.AddHours(4);
             while (DateTime.Now < EndTime)
             {
-                foreach (ConfigMappingItem Item in Session.MappingItemList)
+                foreach (ConfigMappingItem Item in FrontendCommunication.MappingItemList)
                 {
                     if (Array.IndexOf(PolledControlDataType, Item.FrontendDataType) < 0)
                     {
                         continue;
                     }
                     atopLog.WriteLog(atopLogMode.TestInfo, "Polled_Control " + Item.MappingString);
-                    string Command = HarnessCommand.GetMasterCommand(Item.FrontendDataType, Item.FrontendProtocolType);
+                    string Command = HarnessControl.Command_Harness.GetMasterCommand(Item.FrontendDataType, Item.FrontendProtocolType);
                     string Mode = GetMode(Command);
                     for (int Index = 0; Index < Item.FrontendCount; Index++)
                     {
@@ -127,8 +116,8 @@ namespace HarnessControl
 
         private Dictionary<string, string> GetMITValue(int IOA)
         {
-            string CMD = HarnessCommand.GetMasterCommand("mit", Session.Protocol);
-            var Value = Session.SocketClient.Send($"{CMD} get ioa {IOA} value");
+            string CMD = Command_Harness.GetMasterCommand("mit", FrontendCommunication.Protocol);
+            var Value = FrontendSession.SocketClient.Send($"{CMD} get ioa {IOA} value");
             Dictionary<string, string> DataVariable = new Dictionary<string, string>();
             DataVariable.Add("OBJ0,IOA", IOA.ToString());
             DataVariable.Add("Value", Value);
@@ -144,8 +133,7 @@ namespace HarnessControl
             int IOA = ToInt(DataVariable["OBJ0,IOA"]);
             try
             {
-
-                foreach (var Item in Session.MappingItemList)
+                foreach (var Item in FrontendCommunication.MappingItemList)
                 {
                     if (IOA < Item.FrontendStart || IOA > Item.FrontendStart + Item.FrontendCount - 1)
                     {
@@ -184,7 +172,7 @@ namespace HarnessControl
 
         public int[] GetBackendData(ConfigMappingItem Item, int IOA)
         {
-            string BackendCommand = HarnessCommand.GetSlaveCommand(Item.BackendDataType, Item.BackendProtocolType);
+            string BackendCommand = Command_Harness.GetSlaveCommand(Item.BackendDataType, Item.BackendProtocolType);
             int[] Value = new int[0];
             switch (Item.BackendProtocolType)
             {
@@ -204,8 +192,8 @@ namespace HarnessControl
                         BackendCount = 2;
                     }
                     Value = new int[BackendCount];
-                    HarnessTCPClient Client = SocketClientList[Item.BackendIndex - 1];
-                    string BackendData = Client.Send($"Get {BackendCommand} {BackendIndex} {BackendCount}");
+                    SocketClient Client = SocketClientList[Item.BackendIndex - 1];
+                    string BackendData = Client.Send($"Get {BackendCommand} {BackendIndex} {BackendCount} {Item.BackendSlaveID}");
                     var DicBackendData = GetPointValueList(BackendData);
                     for (int i = 0; i < BackendCount; i++)
                     {
@@ -419,7 +407,7 @@ namespace HarnessControl
                 int IOA = ToInt(DicDataVariable["OBJ0,IOA"]);
 
                 #region Check ASDU
-                string DataASDU = DicDataVariable["ASDU"];
+                int DataASDU = int.Parse( DicDataVariable["ASDU"]);
                 if (ASDU != DataASDU)
                 {
                     throw new TestException($"IOA = {IOA} , ASDU ={DataASDU} , Expected = {ASDU}");

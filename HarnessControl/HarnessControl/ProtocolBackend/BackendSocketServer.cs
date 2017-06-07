@@ -8,15 +8,14 @@ using System.Threading.Tasks;
 
 namespace HarnessControl
 {
-    public class HarnessBackendSocketServer
+    public class BackendSocketServer
     {
         public TcpListener Listener;
-        public List<HarnessBackendSocketAccept> ClientList = new List<HarnessBackendSocketAccept>();
+        public List<BackendSocketAccept> ClientList = new List<BackendSocketAccept>();
         public List<ConfigMappingItem> MappingItemList = new List<ConfigMappingItem>();
-        public HarnessTCPClient HarnessSocket { get; set; }
+        public SocketClient HarnessSocket { get; set; }
 
-
-        public void Start(int Port)
+        public void Start<T>(int Port) where T: BackendSocketAccept, new()
         {
             Listener = new TcpListener(IPAddress.Parse(Global.LocalIP), Port);
             atopLog.WriteLog(atopLogMode.SocketInfo, "Socket Server is ready : " +Listener.LocalEndpoint);
@@ -30,7 +29,7 @@ namespace HarnessControl
                     counter += 1;
                     clientSocket = Listener.AcceptTcpClient();
                     atopLog.WriteLog(atopLogMode.SocketInfo, "Socket Server is connect :" + clientSocket.Client.LocalEndPoint);
-                    HarnessBackendSocketAccept client = new HarnessBackendSocketAccept();
+                    BackendSocketAccept client = new T();
                     client.HarnessSocket = HarnessSocket;
                     ClientList.Add(client);
                     client.startClient(clientSocket, counter.ToString());
